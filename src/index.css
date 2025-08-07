@@ -1,0 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&family=Outfit:wght@100..900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Reset all margin/padding properly */
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
