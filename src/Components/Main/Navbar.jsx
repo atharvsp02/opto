@@ -74,7 +74,7 @@ function Navbar() {
       </div>
 
 
-      <div className='bg-[#fff] py-3 px-4 overflow-x-auto scrollbar-hide '>
+      <div className='bg-transparent py-3 px-4 overflow-x-auto scrollbar-hide '>
 
         <ul className='flex gap-4 min-w-max justify-between'>
           {cryptos.map((coin) => (
