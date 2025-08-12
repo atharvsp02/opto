@@ -50,7 +50,7 @@ function Navbar() {
             <li><a href="" >Pre-match</a></li>
             <li><a href="" >Promos</a></li>
           </ul>
-          <button className='ml-[140px] mr-[40px] px-5 h-11 bg-[#fbfbff49] hover:bg-[hsla(240,100%,99%,0.2)] rounded-3xl '>
+          <button className='ml-[140px] mr-[40px] px-5 h-11 bg-[#fbfbff70] hover:bg-[hsla(240,100%,99%,0.2)] rounded-3xl '>
             Add Coins
           </button>
 
@@ -74,7 +74,7 @@ function Navbar() {
       </div>
 
 
-      <div className='bg-transparent py-3 px-4 overflow-x-auto scrollbar-hide '>
+      <div className='bg-transparent py-6 px-4 overflow-x-auto scrollbar-hide '>
 
         <ul className='flex gap-4 min-w-max justify-between'>
           {cryptos.map((coin) => (
@@ -84,11 +84,10 @@ function Navbar() {
                 ${selectedCoin === coin.name ? "scale-105 shadow-md"
                     : "opacity-90 hover:opacity-100"}`}
                 style={{
-                  borderColor: coin.color,
+                  borderColor: "#fbfbff90",
                   backgroundColor:
-                    selectedCoin === coin.name ? "#020313" : coin.color,
-                  color:
-                    "#fff"
+                    "#fbfbff75",
+                  color: 'black'
                 }}
               >
                 {coin.type === "fa" && (
