@@ -12,14 +12,16 @@ export default function MainPage() {
     /* Animated Grid Background */
     /* <div className="fixed  inset-0 opacity-[0.03] pointer-events-none z-0 bg-grid animat"></div> */
 
-    <Background>
+    <>
+      <Navbar />
+      <Background>
 
-      {/* Main Content */}
-      <div className="relative z-10">
-        <Navbar />
-        <MainBanner />
-        <Main />
-      </div>
-    </Background>
+        {/* Main Content */}
+        <div className="relative z-10 ">
+          <MainBanner />
+          <Main />
+        </div>
+      </Background>
+    </>
   );
 }

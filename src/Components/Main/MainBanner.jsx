@@ -79,7 +79,7 @@ export default function MainBanner() {
     }, [index, images.length]);
 
     return (
-        <div className="relative flex items-center justify-center bg-transparent"> {/* CHANGED: made relative for absolute arrows */}
+        <div className="relative flex items-center justify-center bg-transparent "> {/* CHANGED: made relative for absolute arrows */}
 
             {/* Left Arrow */}
             <button
