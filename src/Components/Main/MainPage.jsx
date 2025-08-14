@@ -13,15 +13,15 @@ export default function MainPage() {
     /* <div className="fixed  inset-0 opacity-[0.03] pointer-events-none z-0 bg-grid animat"></div> */
 
     <>
-      <Navbar />
-      <Background>
 
-        {/* Main Content */}
-        <div className="relative z-10 ">
-          <MainBanner />
-          <Main />
-        </div>
-      </Background>
+
+      {/* Main Content */}
+      <div className=" bg-black min-h-full">
+        <Navbar />
+        <MainBanner />
+        <Main />
+      </div>
+
     </>
   );
 }

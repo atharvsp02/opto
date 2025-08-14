@@ -9,6 +9,10 @@ export default {
       fontFamily: {
         oswald: ['Oswald', 'sans-serif'],
         outfit: ['Outfit', 'sans-serif'],
+        playwrite: ['"Playwrite MX Guides"', 'cursive'],
+        zen: ['"Zen Dots"', 'sans-serif'],
+        geostar: ['"Geostar Fill"', 'sans-serif'],
+        silkscreen: ['"Silkscreen"', 'sans-serif']
       },
       animation: {
         gradient: "gradientMove 5s ease infinite",

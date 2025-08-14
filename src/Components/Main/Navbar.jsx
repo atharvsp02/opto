@@ -12,9 +12,10 @@ import ripple from "../../assets/ripple.svg";
 
 function Navbar() {
   const [user, setUser] = useState(null);
-  const [selectedCoin, setSelectedCoin] = useState("Bitcoin");
+  const [selectedCoin, setSelectedCoin] = useState("All");
 
   const cryptos = [
+    { name: "All", color: "#020313", type: "" },
     {
       name: "Bitcoin",
       color: "#020313",
@@ -49,10 +50,10 @@ function Navbar() {
   return (
     <header>
       <div
-        className="fixed top-0 left-0 right-0  bg-black/30 backdrop-blur-md shadow-[0_4px_50px_rgba(0,0,0,0.5)] text-white h-[75px] flex items-center z-50"
+        className="fixed top-0 left-0 right-0  bg-black/30 backdrop-blur-md shadow-[0_4px_50px_rgba(0,0,0,0.5)] text-white h-[75px] flex items-center z-50 "
       >
         <nav className="flex items-center justify-between w-full">
-          <h1 className="px-5 tracking-[6px] text-[35px] ">OPTO</h1>
+          <h1 className="px-5 tracking-[6px] text-[35px] font-silkscreen">Opto</h1>
           <ul className="flex justify-start pl-[100px] gap-11">
             <li>
               <a href="">Live-opinion</a>
