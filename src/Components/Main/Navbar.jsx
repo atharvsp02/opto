@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useContext } from "react";
 import { useEffect, useState } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { Context } from '../../context/context'
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBitcoin, faEthereum } from "@fortawesome/free-brands-svg-icons";
 import { icon } from "@fortawesome/fontawesome-svg-core";
@@ -13,15 +14,17 @@ import ripple from "../../assets/ripple.svg";
 function Navbar() {
   const [user, setUser] = useState(null);
   const [selectedCoin, setSelectedCoin] = useState("All");
+  const { showData, setShowData } = useContext(Context);
 
   const cryptos = [
-    { name: "All", color: "#020313", type: "" },
+    { name: "All", color: "#020313", type: "", key: "all" },
     {
       name: "Bitcoin",
       color: "#020313",
       icon: faBitcoin,
       type: "fa",
       setIconColor: "#ff7800",
+      key: "btc"
     },
     {
       name: "Ethereum",
@@ -29,13 +32,14 @@ function Navbar() {
       icon: faEthereum,
       type: "fa",
       setIconColor: "#deddda",
+      key: "eth",
     },
-    { name: "Solana", color: "#020313", icon: solana, type: "svg" },
-    { name: "Dogecoin", color: "#020313", icon: doge, type: "svg" },
-    { name: "Cardano", color: "#020313", icon: cardano, type: "svg" },
-    { name: "Binance Coin", color: "#020313", icon: binance, type: "svg" },
-    { name: "Polygon", color: "#020313", icon: solana, type: "svg" },
-    { name: "Ripple", color: "#020313", icon: ripple, type: "svg" },
+    { name: "Solana", color: "#020313", icon: solana, type: "svg", key: "sol", },
+    { name: "Dogecoin", color: "#020313", icon: doge, type: "svg", key: "doge", },
+    { name: "Cardano", color: "#020313", icon: cardano, type: "svg", key: "card", },
+    { name: "Binance Coin", color: "#020313", icon: binance, type: "svg", key: "bnb", },
+    { name: "Polygon", color: "#020313", icon: solana, type: "svg", key: "pol", },
+    { name: "Ripple", color: "#020313", icon: ripple, type: "svg", key: "xrp", },
   ];
 
   useEffect(() => {
@@ -93,7 +97,10 @@ function Navbar() {
           {cryptos.map((coin) => (
             <li key={coin.name}>
               <button
-                onClick={() => setSelectedCoin(coin.name)}
+                onClick={() => {
+                  setSelectedCoin(coin.name);  // for local highlight
+                  setShowData(coin.key);       // store the crypto key globally
+                }}
                 className={`px-5 py-2 rounded-full text-sm font-semibold transition-all  border-2 flex items-center gap-2 
                 ${selectedCoin === coin.name
                     ? "scale-105  shadow-[0_0_15px_1px_rgba(255,255,255,0.7)]"
@@ -133,7 +140,7 @@ function Navbar() {
           ))}
         </ul>
       </div>
-    </header>
+    </header >
   );
 }
 
