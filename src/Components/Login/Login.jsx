@@ -14,7 +14,7 @@ export default function Login() {
     try {
       const result = await signInWithPopup(auth, provider);
       console.log('User:', result.user);
-      navigate('/');
+      navigate('/MainPage');
     } catch (error) {
       console.error('Login failed:', error);
     }
