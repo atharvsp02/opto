@@ -5,11 +5,11 @@ import { Context } from '../../context/context'
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBitcoin, faEthereum } from "@fortawesome/free-brands-svg-icons";
 import { icon } from "@fortawesome/fontawesome-svg-core";
-import solana from "../../assets/solana.svg";
-import doge from "../../assets/doge.svg";
-import cardano from "../../assets/cardano.svg";
-import binance from "../../assets/binance.svg";
-import ripple from "../../assets/ripple.svg";
+import Solana from "../../assets/solana.svg";
+import Doge from "../../assets/doge.svg";
+import Cardano from "../../assets/cardano.svg";
+import Binance from "../../assets/binance.svg";
+import Ripple from "../../assets/ripple.svg";
 
 function Navbar() {
   const [user, setUser] = useState(null);
@@ -34,12 +34,12 @@ function Navbar() {
       setIconColor: "#deddda",
       key: "eth",
     },
-    { name: "Solana", color: "#020313", icon: solana, type: "svg", key: "sol", },
-    { name: "Dogecoin", color: "#020313", icon: doge, type: "svg", key: "doge", },
-    { name: "Cardano", color: "#020313", icon: cardano, type: "svg", key: "card", },
-    { name: "Binance Coin", color: "#020313", icon: binance, type: "svg", key: "bnb", },
-    { name: "Polygon", color: "#020313", icon: solana, type: "svg", key: "pol", },
-    { name: "Ripple", color: "#020313", icon: ripple, type: "svg", key: "xrp", },
+    { name: "Solana", color: "#020313", icon: Solana, type: "svg", key: "sol", },
+    { name: "Dogecoin", color: "#020313", icon: Doge, type: "svg", key: "doge", },
+    { name: "Cardano", color: "#020313", icon: Cardano, type: "svg", key: "card", },
+    { name: "Binance Coin", color: "#020313", icon: Binance, type: "svg", key: "bnb", },
+    { name: "Polygon", color: "#020313", icon: Solana, type: "svg", key: "pol", },
+    { name: "Ripple", color: "#020313", icon: Ripple, type: "svg", key: "xrp", },
   ];
 
   useEffect(() => {
@@ -69,7 +69,7 @@ function Navbar() {
               <a href="">Promos</a>
             </li>
           </ul>
-          <button className="ml-[140px] mr-[40px] px-5 h-11 bg-[#136ef6c9] hover:bg-[hsl(216,93%,52%)]  hover:scale-105 rounded-3xl ">
+          <button className="ml-[140px] mr-[40px] px-5 h-11 bg-[#136ef6c9] hover:bg-[hsl(216,93%,52%)]  hover:scale-105 rounded-3xl transition-all">
             Add Coins
           </button>
 
