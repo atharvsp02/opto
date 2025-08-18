@@ -16,7 +16,7 @@ export default function MainPage() {
 
 
       {/* Main Content */}
-      <div className=" bg-black min-h-full">
+      <div className=" bg-black min-h-full ">
         <Navbar />
         <MainBanner />
         <Main />

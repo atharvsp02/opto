@@ -131,10 +131,10 @@ function Main() {
   };
 
   return (
-    <div className="bg-black text-white h-[100vh] flex flex-row gap-4">
+    <div className="bg-black text-white h-[100vh] flex flex-row gap-4 px-[50px]">
       {/* Left side: Questions */}
-      <div className="flex-1 pl-[50px] pt-[40px] max-w-[60vw] flex flex-col space-y-6">
-        <p className="font-bold text-2xl mb-11">
+      <div className="flex-1 pl-[50px] pt-[40px] min-w-[55vw] flex flex-col space-y-11">
+        <p className="font-bold text-3xl mb-11">
           {showData === "all" ? "ALL" : idToName[showData].toUpperCase()}
         </p>
 
@@ -144,13 +144,13 @@ function Main() {
           filteredQuestions.map((q) => (
             <div
               key={q.id}
-              className="border border-white pl-4 pt-2 p-4 bg-white/20 backdrop-blur-sm rounded-lg shadow-md"
+              className="border border-white pl-4 pt-2 p-4 bg-white/20 backdrop-blur-sm rounded-lg shadow-md space-y-2"
             >
-              <a href="#" className="text-[12px] rounded-full py-1">
+              <a href="#" className="text-[15px] rounded-full py-1">
                 {q.traders} Traders
               </a>
               <div className="flex flex-row justify-between">
-                <p className="py-1 mb-11">{q.text}</p>
+                <p className="py-1 mb-11 text-lg">{q.text}</p>
                 <img
                   src={q.img}
                   alt={q.id}
@@ -158,10 +158,10 @@ function Main() {
                 />
               </div>
               <div className="flex flex-row justify-center pt-4">
-                <button className="bg-[#0064FB] mx-5 px-5 py-2 w-[320px] rounded-md shadow-xl hover:scale-105 hover:bg-[#0064FB]/90 transition-all">
+                <button className="bg-[#0064FB] mx-5 px-5 py-2 w-[400px] rounded-md shadow-xl hover:scale-105 hover:bg-[#0064FB]/90 transition-all text-xl">
                   Yes
                 </button>
-                <button className="bg-[#FF414B] mx-5 px-5 py-2 w-[320px] rounded-md shadow-xl hover:scale-105 hover:bg-[#FF414B]/90 transition-all">
+                <button className="bg-[#FF414B] mx-5 px-5 py-2 w-[400px] rounded-md shadow-xl hover:scale-105 hover:bg-[#FF414B]/90 transition-all text-xl">
                   No
                 </button>
               </div>
@@ -171,7 +171,7 @@ function Main() {
       </div>
 
       {/* Right side: Portfolio (future use) */}
-      <div className="flex-1 w-[40vw] m-4 mt-[40px] border border-white bg-white/20 backdrop-blur-sm rounded-lg shadow-md">
+      <div className="flex-1 w-1 m-4 mt-[40px] border border-white bg-white/20 backdrop-blur-sm rounded-lg shadow-md">
         <p className="p-4">Portfolio / Stats Coming Soon</p>
       </div>
     </div>

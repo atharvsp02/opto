@@ -93,7 +93,7 @@ export default function MainBanner() {
             </button>
 
             {/* Image container */}
-            <div className="w-full overflow-hidden flex justify-center">
+            <div className="w-full overflow-hidden flex justify-center ">
                 <div
                     className={`flex ${isAnimating ? "transition-transform duration-1000 ease-in-out" : ""}`}
                     style={{
@@ -111,7 +111,7 @@ export default function MainBanner() {
                             <img
                                 src={img}
                                 alt={`banner-${i}`}
-                                className="w-full max-w-full h-[223px] mx-4 my-2 rounded-2xl"
+                                className="w-full max-w-full h-[250px] mx-[65px] my-2 rounded-2xl"
                             />
                         </div>
                     ))}
