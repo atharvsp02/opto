@@ -13,8 +13,17 @@ function Main() {
   const { showData } = useContext(Context);
   const [questions, setQuestion] = useState([]);
 
+  const getExpiry = () => {
+    const saved = localStorage.getItem("expiry");
+    if (saved) return new Date(saved)
+
+    const newExpiry = new Date(Date.now() + 60 * 60 * 1000);
+    localStorage.setItem("expiry", newExpiry);
+    return newExpiry;
+  }
+
   const QuestionFromPrice = (prices) => {
-    const expiry = new Date(Date.now() + 60 * 60 * 1000);
+    const expiry = getExpiry();
 
     const bitcoinPrice = prices.bitcoin?.usd ?? 0;
     const ethereumPrice = prices.ethereum?.usd ?? 0;
@@ -110,12 +119,23 @@ function Main() {
       ? questions
       : questions.filter((q) => q.id === showData);
 
+  const idToName = {
+    btc: "Bitcoin",
+    eth: "Ethereum",
+    sol: "Solana",
+    doge: "Dogecoin",
+    card: "Cardano",
+    bnb: "Binance Coin",
+    pol: "Polygon",
+    xrp: "Ripple",
+  };
+
   return (
     <div className="bg-black text-white h-[100vh] flex flex-row gap-4">
       {/* Left side: Questions */}
       <div className="flex-1 pl-[50px] pt-[40px] max-w-[60vw] flex flex-col space-y-6">
         <p className="font-bold text-2xl mb-11">
-          {showData === "all" ? "All" : showData.toUpperCase()}
+          {showData === "all" ? "ALL" : idToName[showData].toUpperCase()}
         </p>
 
         {filteredQuestions.length === 0 ? (

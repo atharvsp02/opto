@@ -69,7 +69,7 @@ function Navbar() {
               <a href="">Promos</a>
             </li>
           </ul>
-          <button className="ml-[140px] mr-[40px] px-5 h-11 bg-[#136ef6c9] hover:bg-[hsl(216,93%,52%)]  hover:scale-105 rounded-3xl transition-all">
+          <button className="ml-auto mr-2 px-5 h-11 bg-[#136ef6c9] hover:bg-[hsl(216,93%,52%)]  hover:scale-105 rounded-3xl transition-all">
             Add Coins
           </button>
 
@@ -80,12 +80,10 @@ function Navbar() {
                   <img
                     src={user.photoURL}
                     alt="User Avatar"
-                    className="w-8 h-8 rounded-full"
+                    className="w-9 h-9 rounded-full"
                   />
                 )}
-                <span className="text-sm ">
-                  <a href="#">{user.displayName || user.email}</a>
-                </span>
+
               </>
             )}
           </div>
