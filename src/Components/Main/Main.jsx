@@ -6,25 +6,28 @@ import Doge from "../../assets/doge.svg";
 import Cardano from "../../assets/cardano.svg";
 import Binance from "../../assets/binance.svg";
 import Ripple from "../../assets/ripple.svg";
-// import Polygon from "../../assets/polygon.svg"; // if you have polygon logo
+// import Polygon from "../../assets/polygon.svg"; 
 import { Context } from "../../context/context";
 
 function Main() {
   const { showData } = useContext(Context);
   const [questions, setQuestion] = useState([]);
+  const [now, setNow] = useState(new Date());
+  const [expiry, setExpiry] = useState(getNewExpiry());
 
-  const getExpiry = () => {
-    const saved = localStorage.getItem("expiry");
-    if (saved) return new Date(saved)
-
-    const newExpiry = new Date(Date.now() + 60 * 60 * 1000);
-    localStorage.setItem("expiry", newExpiry);
-    return newExpiry;
+  // 🔹 helper to always create a fresh expiry
+  function getNewExpiry() {
+    return new Date(Date.now() + 60 * 60 * 1000); // 1 hour later
   }
 
-  const QuestionFromPrice = (prices) => {
-    const expiry = getExpiry();
+  // Keep updating current time every second
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, []);
 
+  // 🔹 Build questions from API prices
+  const QuestionFromPrice = (prices, expiryTime) => {
     const bitcoinPrice = prices.bitcoin?.usd ?? 0;
     const ethereumPrice = prices.ethereum?.usd ?? 0;
     const solanaPrice = prices.solana?.usd ?? 0;
@@ -37,82 +40,91 @@ function Main() {
     const qList = [
       {
         id: "btc",
-        text: `Bitcoin is forecasted to reach ${(bitcoinPrice + 1000).toFixed(2)} USDT or more at ${expiry.toLocaleTimeString()}?`,
+        text: `Bitcoin is forecasted to reach ${(bitcoinPrice + 1000).toFixed(2)} USDT or more?`,
         traders: 5,
         img: Bitcoin,
-        expiration: expiry,
+        expiration: expiryTime,
       },
       {
         id: "eth",
-        text: `Ethereum is forecasted to reach ${(ethereumPrice + 100).toFixed(2)} USDT or more at ${expiry.toLocaleTimeString()}?`,
+        text: `Ethereum is forecasted to reach ${(ethereumPrice + 100).toFixed(2)} USDT or more?`,
         traders: 5,
         img: Ethereum,
-        expiration: expiry,
+        expiration: expiryTime,
       },
       {
         id: "sol",
-        text: `Solana is forecasted to reach ${(solanaPrice + 10).toFixed(2)} USDT or more at ${expiry.toLocaleTimeString()}?`,
+        text: `Solana is forecasted to reach ${(solanaPrice + 10).toFixed(2)} USDT or more?`,
         traders: 5,
         img: Solana,
-        expiration: expiry,
+        expiration: expiryTime,
       },
       {
         id: "doge",
-        text: `Dogecoin is forecasted to reach ${(dogecoinPrice + 0.01).toFixed(2)} USDT or more at ${expiry.toLocaleTimeString()}?`,
+        text: `Dogecoin is forecasted to reach ${(dogecoinPrice + 0.01).toFixed(2)} USDT or more?`,
         traders: 5,
         img: Doge,
-        expiration: expiry,
+        expiration: expiryTime,
       },
       {
         id: "card",
-        text: `Cardano is forecasted to reach ${(cardanoPrice + 0.1).toFixed(2)} USDT or more at ${expiry.toLocaleTimeString()}?`,
+        text: `Cardano is forecasted to reach ${(cardanoPrice + 0.1).toFixed(2)} USDT or more?`,
         traders: 5,
         img: Cardano,
-        expiration: expiry,
+        expiration: expiryTime,
       },
       {
         id: "bnb",
-        text: `Binance Coin is forecasted to reach ${(binancePrice + 10).toFixed(2)} USDT or more at ${expiry.toLocaleTimeString()}?`,
+        text: `Binance Coin is forecasted to reach ${(binancePrice + 10).toFixed(2)} USDT or more?`,
         traders: 5,
         img: Binance,
-        expiration: expiry,
+        expiration: expiryTime,
       },
       {
         id: "pol",
-        text: `Polygon is forecasted to reach ${(polygonPrice + 0.1).toFixed(2)} USDT or more at ${expiry.toLocaleTimeString()}?`,
+        text: `Polygon is forecasted to reach ${(polygonPrice + 0.1).toFixed(2)} USDT or more?`,
         traders: 5,
         img: Solana, // replace with Polygon if available
-        expiration: expiry,
+        expiration: expiryTime,
       },
       {
         id: "xrp",
-        text: `Ripple is forecasted to reach ${(ripplePrice + 0.1).toFixed(2)} USDT or more at ${expiry.toLocaleTimeString()}?`,
+        text: `Ripple is forecasted to reach ${(ripplePrice + 0.1).toFixed(2)} USDT or more?`,
         traders: 5,
         img: Ripple,
-        expiration: expiry,
+        expiration: expiryTime,
       },
     ];
 
     setQuestion(qList);
   };
 
-  const fetchPrices = async () => {
+  // 🔹 Fetch prices and regenerate questions
+  const fetchPrices = async (newExpiry = expiry) => {
     try {
       const res = await fetch(
         "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,dogecoin,cardano,binancecoin,polygon,ripple&vs_currencies=usd"
       );
       const data = await res.json();
-      QuestionFromPrice(data);
+      QuestionFromPrice(data, newExpiry);
     } catch (e) {
       console.error("price fetch failed", e);
     }
   };
 
+  // 🔹 First fetch
   useEffect(() => {
-    fetchPrices();
-    const id = setInterval(fetchPrices, 60 * 60 * 1000);
-    return () => clearInterval(id);
+    fetchPrices(expiry);
   }, []);
+
+  // 🔹 When time expires → reset expiry + fetch new questions
+  useEffect(() => {
+    if (now >= expiry) {
+      const newExp = getNewExpiry();
+      setExpiry(newExp);
+      fetchPrices(newExp);
+    }
+  }, [now]);
 
   const filteredQuestions =
     showData === "all"
@@ -128,6 +140,20 @@ function Main() {
     bnb: "Binance Coin",
     pol: "Polygon",
     xrp: "Ripple",
+  };
+
+  // Countdown formatter
+  const formatCountdown = (expiry) => {
+    const diff = expiry - now;
+    if (diff <= 0) return "Expired";
+
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    return `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
   };
 
   return (
@@ -157,6 +183,9 @@ function Main() {
                   className="w-[60px] relative right-4"
                 />
               </div>
+              <p className="text-base text-yellow-300 font-mono">
+                Time Left: {formatCountdown(q.expiration)}
+              </p>
               <div className="flex flex-row justify-center pt-4">
                 <button className="bg-[#0064FB] mx-5 px-5 py-2 w-[400px] rounded-md shadow-xl hover:scale-105 hover:bg-[#0064FB]/90 transition-all text-xl">
                   Yes
