@@ -36,7 +36,7 @@ export default function Login() {
 
 
         <div className=" w-[50vw] h-[100vh] flex flex-col justify-center ">
-          <div className="bg-gray-900/50 backdrop-blur-sm  border-[11px]  border-gray-700/50  border-double   w-[400px] h-[300px] rounded-[80px] shadow-[0_10px_30px_rgba(0,0,0,0.1)] p-8 absolute left-[800px] flex flex-col justify-center items-center">
+          <div className="bg-gray-900/50 backdrop-blur-sm  border-[11px]  border-gray-700/50  border-double   w-[400px] h-[300px] rounded-[80px] shadow-[0_10px_30px_rgba(0,0,0,0.1)] p-8 absolute right-[200px] flex flex-col justify-center items-center">
             <div className="btn" >
               <button onClick={handleGoogleLogin} className="bg-white text-[hsl(0,0%,54%)] border-none p-[11.5px] w-[290px] rounded-[9px] flex flex-row gap-4 justify-center items-center font-bold">
                 <img src={googleLogo} alt="google-logo" className=' w-5 h-5 ' />
