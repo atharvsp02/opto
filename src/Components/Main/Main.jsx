@@ -13,14 +13,17 @@ function Main() {
   const { showData } = useContext(Context);
   const [questions, setQuestion] = useState([]);
   const [now, setNow] = useState(new Date());
-  const [expiry, setExpiry] = useState(getNewExpiry());
+  const [expiry, setExpiry] = useState(() => {
+    // ✅ Load from localStorage if available
+    const saved = localStorage.getItem("expiry");
+    return saved ? new Date(saved) : getNewExpiry();
+  });
 
-  // 🔹 helper to always create a fresh expiry
   function getNewExpiry() {
     return new Date(Date.now() + 60 * 60 * 1000); // 1 hour later
   }
 
-  // Keep updating current time every second
+  // Keep updating current time
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(interval);
@@ -99,7 +102,7 @@ function Main() {
     setQuestion(qList);
   };
 
-  // 🔹 Fetch prices and regenerate questions
+  // 🔹 Fetch prices
   const fetchPrices = async (newExpiry = expiry) => {
     try {
       const res = await fetch(
@@ -112,7 +115,7 @@ function Main() {
     }
   };
 
-  // 🔹 First fetch
+  // First fetch
   useEffect(() => {
     fetchPrices(expiry);
   }, []);
@@ -122,6 +125,7 @@ function Main() {
     if (now >= expiry) {
       const newExp = getNewExpiry();
       setExpiry(newExp);
+      localStorage.setItem("expiry", newExp.toISOString()); // ✅ Save expiry
       fetchPrices(newExp);
     }
   }, [now]);
