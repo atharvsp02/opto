@@ -9,6 +9,7 @@ import Solana from "../../assets/solana.svg";
 import Doge from "../../assets/doge.svg";
 import Cardano from "../../assets/cardano.svg";
 import Binance from "../../assets/binance.svg";
+import Polygon from "../../assets/Polygon.svg"
 import Ripple from "../../assets/ripple.svg";
 
 function Navbar() {
@@ -38,7 +39,7 @@ function Navbar() {
     { name: "Dogecoin", color: "#020313", icon: Doge, type: "svg", key: "doge", },
     { name: "Cardano", color: "#020313", icon: Cardano, type: "svg", key: "card", },
     { name: "Binance Coin", color: "#020313", icon: Binance, type: "svg", key: "bnb", },
-    { name: "Polygon", color: "#020313", icon: Solana, type: "svg", key: "pol", },
+    { name: "Polygon", color: "#020313", icon: Polygon, type: "svg", key: "pol", },
     { name: "Ripple", color: "#020313", icon: Ripple, type: "svg", key: "xrp", },
   ];
 

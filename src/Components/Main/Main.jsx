@@ -5,22 +5,24 @@ import Solana from "../../assets/solana.svg";
 import Doge from "../../assets/doge.svg";
 import Cardano from "../../assets/cardano.svg";
 import Binance from "../../assets/binance.svg";
+import Polygon from "../../assets/Polygon.svg";
 import Ripple from "../../assets/ripple.svg";
-// import Polygon from "../../assets/polygon.svg"; 
+import { db } from "../../firebase";
+import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore"; // 🔹 added updateDoc
 import { Context } from "../../context/context";
 
 function Main() {
-  const { showData } = useContext(Context);
+  const { showData, user } = useContext(Context);
   const [questions, setQuestion] = useState([]);
+  const [responses, setResponses] = useState({});
   const [now, setNow] = useState(new Date());
   const [expiry, setExpiry] = useState(() => {
-    // ✅ Load from localStorage if available
     const saved = localStorage.getItem("expiry");
     return saved ? new Date(saved) : getNewExpiry();
   });
 
   function getNewExpiry() {
-    return new Date(Date.now() + 60 * 60 * 1000); // 1 hour later
+    return new Date(Date.now() + 60 * 60 * 1000);
   }
 
   // Keep updating current time
@@ -29,7 +31,7 @@ function Main() {
     return () => clearInterval(interval);
   }, []);
 
-  // 🔹 Build questions from API prices
+  // 🔹 Build questions from API prices (with correctAnswer field)
   const QuestionFromPrice = (prices, expiryTime) => {
     const bitcoinPrice = prices.bitcoin?.usd ?? 0;
     const ethereumPrice = prices.ethereum?.usd ?? 0;
@@ -47,6 +49,7 @@ function Main() {
         traders: 5,
         img: Bitcoin,
         expiration: expiryTime,
+        correctAnswer: bitcoinPrice >= bitcoinPrice + 1000 ? "yes" : "no", // 🔹 set correct answer
       },
       {
         id: "eth",
@@ -54,6 +57,7 @@ function Main() {
         traders: 5,
         img: Ethereum,
         expiration: expiryTime,
+        correctAnswer: ethereumPrice >= ethereumPrice + 100 ? "yes" : "no",
       },
       {
         id: "sol",
@@ -61,6 +65,7 @@ function Main() {
         traders: 5,
         img: Solana,
         expiration: expiryTime,
+        correctAnswer: solanaPrice >= solanaPrice + 10 ? "yes" : "no",
       },
       {
         id: "doge",
@@ -68,6 +73,7 @@ function Main() {
         traders: 5,
         img: Doge,
         expiration: expiryTime,
+        correctAnswer: dogecoinPrice >= dogecoinPrice + 0.01 ? "yes" : "no",
       },
       {
         id: "card",
@@ -75,6 +81,7 @@ function Main() {
         traders: 5,
         img: Cardano,
         expiration: expiryTime,
+        correctAnswer: cardanoPrice >= cardanoPrice + 0.1 ? "yes" : "no",
       },
       {
         id: "bnb",
@@ -82,13 +89,15 @@ function Main() {
         traders: 5,
         img: Binance,
         expiration: expiryTime,
+        correctAnswer: binancePrice >= binancePrice + 10 ? "yes" : "no",
       },
       {
         id: "pol",
         text: `Polygon is forecasted to reach ${(polygonPrice + 0.1).toFixed(2)} USDT or more?`,
         traders: 5,
-        img: Solana, // replace with Polygon if available
+        img: Polygon,
         expiration: expiryTime,
+        correctAnswer: polygonPrice >= polygonPrice + 0.1 ? "yes" : "no",
       },
       {
         id: "xrp",
@@ -96,6 +105,7 @@ function Main() {
         traders: 5,
         img: Ripple,
         expiration: expiryTime,
+        correctAnswer: ripplePrice >= ripplePrice + 0.1 ? "yes" : "no",
       },
     ];
 
@@ -115,17 +125,70 @@ function Main() {
     }
   };
 
+  // Load user responses
+  useEffect(() => {
+    if (!user) return;
+    const loadResponses = async () => {
+      try {
+        const ref = doc(db, "responses", user.uid);
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+          setResponses(snap.data());
+        }
+      } catch (err) {
+        console.error("Error loading responses", err);
+      }
+    };
+    loadResponses();
+  }, [user]);
+
+  // Save response
+  const handleResponse = async (qid, answer) => {
+    if (!user) return alert("Login required!");
+    const newResponses = { ...responses, [qid]: { answer, status: "pending" } }; // 🔹 store status
+    setResponses(newResponses);
+    try {
+      await setDoc(doc(db, "responses", user.uid), newResponses);
+    } catch (err) {
+      console.error("Error saving response", err);
+    }
+  };
+
+  // 🔹 Auto-check answers when expired
+  const autoCheck = async () => {
+    if (!user) return;
+
+    const updatedResponses = { ...responses };
+
+    questions.forEach((q) => {
+      if (updatedResponses[q.id] && updatedResponses[q.id].status === "pending") {
+        const userAns = updatedResponses[q.id].answer;
+        updatedResponses[q.id].status =
+          userAns === q.correctAnswer ? "correct" : "wrong"; // mark answer
+      }
+    });
+
+    setResponses(updatedResponses);
+    try {
+      await updateDoc(doc(db, "responses", user.uid), updatedResponses);
+    } catch (err) {
+      console.error("Error updating results", err);
+    }
+  };
+
   // First fetch
   useEffect(() => {
     fetchPrices(expiry);
   }, []);
 
-  // 🔹 When time expires → reset expiry + fetch new questions
+  // 🔹 When time expires → auto-check responses + reset expiry
   useEffect(() => {
     if (now >= expiry) {
+      autoCheck(); // 🔥 check answers automatically
+
       const newExp = getNewExpiry();
       setExpiry(newExp);
-      localStorage.setItem("expiry", newExp.toISOString()); // ✅ Save expiry
+      localStorage.setItem("expiry", newExp.toISOString());
       fetchPrices(newExp);
     }
   }, [now]);
@@ -146,15 +209,12 @@ function Main() {
     xrp: "Ripple",
   };
 
-  // Countdown formatter
   const formatCountdown = (expiry) => {
     const diff = expiry - now;
     if (diff <= 0) return "Expired";
-
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
     return `${hours.toString().padStart(2, "0")}:${minutes
       .toString()
       .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
@@ -190,11 +250,37 @@ function Main() {
               <p className="text-base text-yellow-300 font-mono">
                 Time Left: {formatCountdown(q.expiration)}
               </p>
+
+              {/* 🔹 Show result if already checked */}
+              {responses[q.id]?.status === "correct" && (
+                <p className="text-green-400 font-bold">✅ Correct</p>
+              )}
+              {responses[q.id]?.status === "wrong" && (
+                <p className="text-red-400 font-bold">❌ Wrong</p>
+              )}
+              {responses[q.id]?.status === "pending" && (
+                <p className="text-gray-400">⏳ Waiting for expiry…</p>
+              )}
+
               <div className="flex flex-row justify-center pt-4">
-                <button className="bg-[#0064FB] mx-5 px-5 py-2 w-[400px] rounded-md shadow-xl hover:scale-105 hover:bg-[#0064FB]/90 transition-all text-xl">
+                <button
+                  onClick={() => handleResponse(q.id, "yes")}
+                  disabled={responses[q.id]?.status !== "pending"} // 🔹 disable after expiry
+                  className={`mx-5 px-5 py-2 w-[400px] rounded-md shadow-xl text-xl transition-all ${responses[q.id]?.answer === "yes"
+                    ? "bg-[#0064FB]"
+                    : "bg-[#0064FB]/70 hover:bg-[#0064FB]"
+                    } cursor-pointer hover:scale-105`}
+                >
                   Yes
                 </button>
-                <button className="bg-[#FF414B] mx-5 px-5 py-2 w-[400px] rounded-md shadow-xl hover:scale-105 hover:bg-[#FF414B]/90 transition-all text-xl">
+                <button
+                  onClick={() => handleResponse(q.id, "no")}
+                  disabled={responses[q.id]?.status !== "pending"} // 🔹 disable after expiry
+                  className={`mx-5 px-5 py-2 w-[400px] rounded-md shadow-xl text-xl transition-all ${responses[q.id]?.answer === "no"
+                    ? "bg-[#FF414B]"
+                    : "bg-[#FF414B]/70 hover:bg-[#FF414B]"
+                    } cursor-pointer hover:scale-105`}
+                >
                   No
                 </button>
               </div>
@@ -203,7 +289,7 @@ function Main() {
         )}
       </div>
 
-      {/* Right side: Portfolio (future use) */}
+      {/* Right side */}
       <div className="flex-1 w-1 m-4 mt-[40px] border border-white bg-white/20 backdrop-blur-sm rounded-lg shadow-md">
         <p className="p-4">Portfolio / Stats Coming Soon</p>
       </div>
