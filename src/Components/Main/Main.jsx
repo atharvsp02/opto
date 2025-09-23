@@ -1,3 +1,4 @@
+// Main.jsx
 import React, { useContext, useState, useEffect } from "react";
 import Bitcoin from "../../assets/Bitcoin.svg";
 import Ethereum from "../../assets/Ethereum.svg";
@@ -8,30 +9,34 @@ import Binance from "../../assets/binance.svg";
 import Polygon from "../../assets/Polygon.svg";
 import Ripple from "../../assets/ripple.svg";
 import { db } from "../../firebase";
-import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore"; // 🔹 added updateDoc
 import { Context } from "../../context/context";
+import Portfolio from "./Portfolio";
+import { doc, setDoc, getDoc, updateDoc, onSnapshot } from "firebase/firestore";
+
 
 function Main() {
   const { showData, user } = useContext(Context);
   const [questions, setQuestion] = useState([]);
   const [responses, setResponses] = useState({});
   const [now, setNow] = useState(new Date());
+
+  // ⏳ Load expiry from localStorage or create new one
   const [expiry, setExpiry] = useState(() => {
     const saved = localStorage.getItem("expiry");
     return saved ? new Date(saved) : getNewExpiry();
   });
 
   function getNewExpiry() {
-    return new Date(Date.now() + 60 * 60 * 1000);
+    return new Date(Date.now() + 60 * 60 * 1000); // 1 hour
   }
 
-  // Keep updating current time
+  // Keep updating current time every second
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
 
-  // 🔹 Build questions from API prices (with correctAnswer field)
+  // 🔹 Build questions dynamically from API prices
   const QuestionFromPrice = (prices, expiryTime) => {
     const bitcoinPrice = prices.bitcoin?.usd ?? 0;
     const ethereumPrice = prices.ethereum?.usd ?? 0;
@@ -49,7 +54,7 @@ function Main() {
         traders: 5,
         img: Bitcoin,
         expiration: expiryTime,
-        correctAnswer: bitcoinPrice >= bitcoinPrice + 1000 ? "yes" : "no", // 🔹 set correct answer
+        correctAnswer: bitcoinPrice >= bitcoinPrice + 1000 ? "yes" : "no",
       },
       {
         id: "eth",
@@ -112,7 +117,7 @@ function Main() {
     setQuestion(qList);
   };
 
-  // 🔹 Fetch prices
+  // Fetch live prices
   const fetchPrices = async (newExpiry = expiry) => {
     try {
       const res = await fetch(
@@ -125,46 +130,68 @@ function Main() {
     }
   };
 
-  // Load user responses
+
+  // 🔄 Real-time sync of user responses
   useEffect(() => {
     if (!user) return;
-    const loadResponses = async () => {
-      try {
-        const ref = doc(db, "responses", user.uid);
-        const snap = await getDoc(ref);
-        if (snap.exists()) {
-          setResponses(snap.data());
-        }
-      } catch (err) {
-        console.error("Error loading responses", err);
+
+    const ref = doc(db, "responses", user.uid);
+    const unsubscribe = onSnapshot(ref, (snap) => {
+      if (snap.exists()) {
+        console.log("Snapshot data:", snap.data());
+
+        setResponses(snap.data());
       }
-    };
-    loadResponses();
+    });
+
+    return () => unsubscribe();
   }, [user]);
 
+
   // Save response
+  // Save response
+  // In Main.jsx, replace your old handleResponse function with this one:
   const handleResponse = async (qid, answer) => {
-    if (!user) return alert("Login required!");
-    const newResponses = { ...responses, [qid]: { answer, status: "pending" } }; // 🔹 store status
+    // Checkpoint 1: See if the function is even running.
+    console.log(`--- handleResponse triggered for [${qid}] with answer [${answer}] ---`);
+
+    if (!user) {
+      console.error("❌ ABORTING: User is not logged in!");
+      return alert("Login required!");
+    }
+
+    // Checkpoint 2: Check the user object and UID.
+    console.log("✅ User is logged in. User UID:", user.uid);
+
+    const newResponses = { ...responses, [qid]: { answer, status: "pending" } };
     setResponses(newResponses);
+
+    // Checkpoint 3: Check the data we are about to save.
+    console.log("📦 Data to be saved:", newResponses);
+
     try {
-      await setDoc(doc(db, "responses", user.uid), newResponses);
+      const docRef = doc(db, "responses", user.uid);
+      await setDoc(docRef, newResponses);
+
+      // Checkpoint 4: This will only run if the save is successful.
+      console.log("✅ SUCCESS: Data was written to Firestore successfully!");
+
     } catch (err) {
-      console.error("Error saving response", err);
+      // Checkpoint 5: This will run if there is any error during the save.
+      console.error("❌ FIREBASE ERROR:", err);
     }
   };
 
-  // 🔹 Auto-check answers when expired
+  // Auto-check answers when expired
   const autoCheck = async () => {
     if (!user) return;
-
     const updatedResponses = { ...responses };
 
     questions.forEach((q) => {
       if (updatedResponses[q.id] && updatedResponses[q.id].status === "pending") {
         const userAns = updatedResponses[q.id].answer;
         updatedResponses[q.id].status =
-          userAns === q.correctAnswer ? "correct" : "wrong"; // mark answer
+          userAns === q.correctAnswer ? "correct" : "wrong";
       }
     });
 
@@ -181,10 +208,10 @@ function Main() {
     fetchPrices(expiry);
   }, []);
 
-  // 🔹 When time expires → auto-check responses + reset expiry
+  // When time expires → auto-check + reset expiry
   useEffect(() => {
     if (now >= expiry) {
-      autoCheck(); // 🔥 check answers automatically
+      autoCheck();
 
       const newExp = getNewExpiry();
       setExpiry(newExp);
@@ -194,9 +221,7 @@ function Main() {
   }, [now]);
 
   const filteredQuestions =
-    showData === "all"
-      ? questions
-      : questions.filter((q) => q.id === showData);
+    showData === "all" ? questions : questions.filter((q) => q.id === showData);
 
   const idToName = {
     btc: "Bitcoin",
@@ -251,7 +276,7 @@ function Main() {
                 Time Left: {formatCountdown(q.expiration)}
               </p>
 
-              {/* 🔹 Show result if already checked */}
+              {/* ✅ Show result */}
               {responses[q.id]?.status === "correct" && (
                 <p className="text-green-400 font-bold">✅ Correct</p>
               )}
@@ -265,7 +290,8 @@ function Main() {
               <div className="flex flex-row justify-center pt-4">
                 <button
                   onClick={() => handleResponse(q.id, "yes")}
-                  disabled={responses[q.id]?.status !== "pending"} // 🔹 disable after expiry
+                  // This is the correct logic
+                  disabled={responses[q.id]}
                   className={`mx-5 px-5 py-2 w-[400px] rounded-md shadow-xl text-xl transition-all ${responses[q.id]?.answer === "yes"
                     ? "bg-[#0064FB]"
                     : "bg-[#0064FB]/70 hover:bg-[#0064FB]"
@@ -275,7 +301,8 @@ function Main() {
                 </button>
                 <button
                   onClick={() => handleResponse(q.id, "no")}
-                  disabled={responses[q.id]?.status !== "pending"} // 🔹 disable after expiry
+                  // This is the correct logic
+                  disabled={responses[q.id]}
                   className={`mx-5 px-5 py-2 w-[400px] rounded-md shadow-xl text-xl transition-all ${responses[q.id]?.answer === "no"
                     ? "bg-[#FF414B]"
                     : "bg-[#FF414B]/70 hover:bg-[#FF414B]"
@@ -291,7 +318,8 @@ function Main() {
 
       {/* Right side */}
       <div className="flex-1 w-1 m-4 mt-[40px] border border-white bg-white/20 backdrop-blur-sm rounded-lg shadow-md">
-        <p className="p-4">Portfolio / Stats Coming Soon</p>
+        <Portfolio responses={responses} idToName={idToName} />
+
       </div>
     </div>
   );
