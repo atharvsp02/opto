@@ -1,9 +1,10 @@
 import { signInWithPopup } from 'firebase/auth';
-import { auth, provider } from '../../firebase';
+import { auth, provider, db } from '../../firebase';
 import { useNavigate } from 'react-router-dom';
 import googleLogo from '../../assets/google-logo.svg';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import Background from '../Main/Background';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 
 export default function Login() {
@@ -13,12 +14,30 @@ export default function Login() {
   const handleGoogleLogin = async () => {
     try {
       const result = await signInWithPopup(auth, provider);
-      console.log('User:', result.user);
+      const user = result.user;
+
+      // Check if the user document already exists in Firestore
+      const userDocRef = doc(db, "users", user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (!userDocSnap.exists()) {
+        // If it's a new user, create their document with 1000 coins
+        await setDoc(userDocRef, {
+          displayName: user.displayName,
+          email: user.email,
+          coins: 1000,
+        });
+        console.log("New user document created with 1000 coins.");
+      } else {
+        console.log("Existing user logged in.");
+      }
+
       navigate('/MainPage');
     } catch (error) {
       console.error('Login failed:', error);
     }
   }
+
 
 
   return (

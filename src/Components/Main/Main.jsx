@@ -10,7 +10,7 @@ import Ripple from "../../assets/ripple.svg";
 import { db } from "../../firebase";
 import { Context } from "../../context/context";
 import Portfolio from "./Portfolio";
-import { doc, setDoc, updateDoc, onSnapshot } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc, onSnapshot, increment } from "firebase/firestore";
 
 function Main() {
   const { showData, user } = useContext(Context);
@@ -94,71 +94,98 @@ function Main() {
     return () => unsubscribe();
   }, [user, expiry]);
 
+  // In Main.jsx
+  // In Main.jsx
   const handleResponse = async (qid, answer) => {
-    if (!user) {
-      return alert("Login required!");
-    }
+    if (!user) return alert("Login required!");
 
+    const userDocRef = doc(db, "users", user.uid);
+    const responsesDocRef = doc(db, "responses", user.uid);
     const roundId = `round_${expiry.getTime()}`;
 
-
-    const fieldPath = `${roundId}.${qid}`;
-
     try {
-      const docRef = doc(db, "responses", user.uid);
+      const userDocSnap = await getDoc(userDocRef);
 
+      if (!userDocSnap.exists()) {
+        return alert("Error: Could not find user profile. Please log out and back in.");
+      }
 
-      await updateDoc(docRef, {
-        [fieldPath]: { answer, status: "pending" }
+      const userData = userDocSnap.data();
+      if (userData.coins < 100) {
+        return alert("You don't have enough coins! (Need 100)");
+      }
+
+      // 1. Subtract 100 coins
+      await updateDoc(userDocRef, {
+        coins: increment(-100)
       });
 
-      console.log("✅ Response updated correctly within the round!");
+      // 2. Create the data structure to save
+      const dataToSave = {
+        [roundId]: { // The key is the current round ID
+          [qid]: { answer, status: "pending" } // The new opinion
+        }
+      };
+
+      // 3. Save the prediction using setDoc with merge:true
+      // This will create the round if it doesn't exist, or
+      // add/update a single opinion within the round without deleting others.
+      await setDoc(responsesDocRef, dataToSave, { merge: true });
+
+      console.log("✅ Bet placed for 100 coins!");
 
     } catch (err) {
-
-      if (err.code === 'not-found' || err.code === 'invalid-argument') {
-        try {
-          const docRef = doc(db, "responses", user.uid);
-          const fieldPath = `${roundId}.${qid}`;
-          const dataToSet = {
-            [roundId]: {
-              [qid]: { answer, status: "pending" }
-            }
-          };
-          await setDoc(docRef, dataToSet, { merge: true });
-          console.log("✅ Round created and response saved!");
-        } catch (e) {
-          console.error("❌ FIREBASE SET ERROR:", e);
-        }
-      } else {
-        console.error("❌ FIREBASE UPDATE ERROR:", err);
-      }
+      console.error("❌ FIREBASE ERROR:", err);
     }
   };
 
+  // In Main.jsx
   const autoCheck = async () => {
     if (!user) return;
 
+    const userDocRef = doc(db, "users", user.uid);
     const expiredRoundId = `round_${expiry.getTime()}`;
     const roundData = responses[expiredRoundId];
 
     if (!roundData) return;
 
     const updates = {};
+    let correctAnswersCount = 0;
+
     questions.forEach((q) => {
       if (roundData[q.id] && roundData[q.id].status === "pending") {
         const userAns = roundData[q.id].answer;
         const newStatus = userAns === q.correctAnswer ? "correct" : "wrong";
         updates[`${expiredRoundId}.${q.id}.status`] = newStatus;
+
+        // If the answer was correct, count it
+        if (newStatus === "correct") {
+          correctAnswersCount++;
+        }
       }
     });
 
-    if (Object.keys(updates).length === 0) return;
+    if (Object.keys(updates).length > 0) {
+      try {
+        // Update the "correct/wrong" status in the responses document
+        await updateDoc(doc(db, "responses", user.uid), updates);
+        console.log("✅ Results updated for round:", expiredRoundId);
+      } catch (err) {
+        console.error("Error updating results", err);
+      }
+    }
 
-    try {
-      await updateDoc(doc(db, "responses", user.uid), updates);
-    } catch (err) {
-      console.error("Error updating results", err);
+    // If there were any correct answers, add the reward
+    if (correctAnswersCount > 0) {
+      const rewardAmount = correctAnswersCount * 200;
+      try {
+        await updateDoc(userDocRef, {
+          coins: increment(rewardAmount)
+        });
+        console.log(`💰 Rewarded ${rewardAmount} coins for ${correctAnswersCount} correct answer(s)!`);
+      } catch (err) {
+        console.error("Error adding reward", err);
+      }
     }
   };
 
