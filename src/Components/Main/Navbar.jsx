@@ -2,6 +2,7 @@ import React, { useContext, useState } from "react";
 import { Context } from '../../context/context';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBitcoin, faEthereum } from "@fortawesome/free-brands-svg-icons";
+import Coin from "../../assets/Coin.svg"
 import Solana from "../../assets/solana.svg";
 import Doge from "../../assets/doge.svg";
 import Cardano from "../../assets/cardano.svg";
@@ -39,8 +40,8 @@ function Navbar() {
           <div className="ml-auto flex items-center gap-4">
             {/* This is the part that displays the coins */}
             {userData && (
-              <div className="text-lg font-semibold bg-white/10 p-2 px-4 rounded-full">
-                <span>💲 {userData.coins.toLocaleString()}</span>
+              <div className="text-lg font-semibold bg-white/10 p-2 px-4 rounded-full ">
+                <span className="flex gap-3 justify-center items-center px-2  "><img src={Coin} alt="" className="w-9 " /> {userData.coins.toLocaleString()}</span>
               </div>
             )}
             <button className="px-5 h-11 bg-[#136ef6c9] hover:bg-[hsl(216,93%,52%)] hover:scale-105 rounded-3xl transition-all text-lg">
