@@ -22,19 +22,35 @@ function Main() {
   const [currentRoundResponses, setCurrentRoundResponses] = useState({});
 
 
-  const [expiry, setExpiry] = useState(() => {
-    const saved = localStorage.getItem("expiry");
-    return saved ? new Date(saved) : getNewExpiry();
-  });
+  // In Main.jsx, at the top of the component
+  const [expiry, setExpiry] = useState(null);
 
   function getNewExpiry() {
-    return new Date(Date.now() + 1 * 60 * 60 * 1000);
+    return new Date(Date.now() + 60 * 1000);
   }
 
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // In Main.jsx, replace your existing timer listener with this
+  useEffect(() => {
+    const roundDocRef = doc(db, "rounds", "current");
+    const unsubscribe = onSnapshot(roundDocRef, (doc) => {
+      if (doc.exists()) {
+        const expiryTimestamp = doc.data().expiryTime;
+        const newExpiry = expiryTimestamp.toDate();
+        setExpiry(newExpiry);
+
+        // 👇 THIS IS THE FIX 👇
+        // Fetch new prices as soon as we get the new expiry time
+        fetchPrices(newExpiry);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []); // This hook should only run once to set up the listener
 
   const QuestionFromPrice = (prices, expiryTime) => {
     const bitcoinPrice = prices.bitcoin?.usd ?? 0;
@@ -72,6 +88,8 @@ function Main() {
 
   useEffect(() => {
     if (!user) return;
+
+    if (!expiry) return;
 
     const ref = doc(db, "responses", user.uid);
     const unsubscribe = onSnapshot(ref, (snap) => {
@@ -140,8 +158,8 @@ function Main() {
   };
 
   // In Main.jsx
-  const autoCheck = async () => {
-    if (!user) return;
+  const autoCheck = async (expiredQuestions) => {
+    if (!user || expiredQuestions.length === 0) return;
 
     const userDocRef = doc(db, "users", user.uid);
     const expiredRoundId = `round_${expiry.getTime()}`;
@@ -152,13 +170,13 @@ function Main() {
     const updates = {};
     let correctAnswersCount = 0;
 
-    questions.forEach((q) => {
+    // Use the expiredQuestions list to get the correct answers
+    expiredQuestions.forEach((q) => {
       if (roundData[q.id] && roundData[q.id].status === "pending") {
         const userAns = roundData[q.id].answer;
         const newStatus = userAns === q.correctAnswer ? "correct" : "wrong";
         updates[`${expiredRoundId}.${q.id}.status`] = newStatus;
 
-        // If the answer was correct, count it
         if (newStatus === "correct") {
           correctAnswersCount++;
         }
@@ -167,7 +185,6 @@ function Main() {
 
     if (Object.keys(updates).length > 0) {
       try {
-        // Update the "correct/wrong" status in the responses document
         await updateDoc(doc(db, "responses", user.uid), updates);
         console.log("✅ Results updated for round:", expiredRoundId);
       } catch (err) {
@@ -175,14 +192,13 @@ function Main() {
       }
     }
 
-    // If there were any correct answers, add the reward
     if (correctAnswersCount > 0) {
       const rewardAmount = correctAnswersCount * 200;
       try {
         await updateDoc(userDocRef, {
           coins: increment(rewardAmount)
         });
-        console.log(`💰 Rewarded ${rewardAmount} coins for ${correctAnswersCount} correct answer(s)!`);
+        console.log(`💰 Rewarded ${rewardAmount} coins!`);
       } catch (err) {
         console.error("Error adding reward", err);
       }
@@ -190,19 +206,53 @@ function Main() {
   };
 
 
-  useEffect(() => {
-    fetchPrices(expiry);
-  }, []);
 
+
+  // In Main.jsx
   useEffect(() => {
+    if (!expiry) return;
+
     if (now >= expiry) {
-      autoCheck();
-      const newExp = getNewExpiry();
-      setExpiry(newExp);
-      localStorage.setItem("expiry", newExp.toISOString());
-      fetchPrices(newExp);
+      // We only need the user object to pass to autoCheck
+      autoCheck(questions);
+
+      const createNewRound = async () => {
+        // --- Start of Locking Mechanism ---
+        const roundDocRef = doc(db, "rounds", "current");
+
+        try {
+          const currentRoundDoc = await getDoc(roundDocRef);
+          // Check if another user is already creating the new round
+          if (currentRoundDoc.exists() && currentRoundDoc.data().isCreatingRound) {
+            console.log("Another client is already creating the new round. Waiting...");
+            return;
+          }
+
+          // Lock the document to signal that we are creating the round
+          await updateDoc(roundDocRef, { isCreatingRound: true });
+          // --- End of Locking Mechanism ---
+
+          const newExpiryDate = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
+
+          // Update the central document with the new time and release the lock
+          await updateDoc(roundDocRef, {
+            expiryTime: newExpiryDate,
+            isCreatingRound: false // Release the lock
+          });
+
+          fetchPrices(newExpiryDate);
+
+        } catch (error) {
+          console.error("Error creating new round:", error);
+          // In case of an error, try to release the lock
+          const roundDocRef = doc(db, "rounds", "current");
+          await updateDoc(roundDocRef, { isCreatingRound: false });
+        }
+      };
+
+      createNewRound();
     }
-  }, [now, expiry, user]);
+  }, [now, expiry, user, questions]); // Add 'questions' to the dependency array
 
 
   const filteredQuestions = showData === "all" ? questions : questions.filter((q) => q.id === showData);
