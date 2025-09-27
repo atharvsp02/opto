@@ -1,43 +1,40 @@
-// context.jsx
 import React, { createContext, useState, useEffect } from "react";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
-import { db } from "../firebase";
+import { doc, onSnapshot } from "firebase/firestore";
 
 export const Context = createContext();
 
 export default function ContextProvider({ children }) {
     const [user, setUser] = useState(null);
+    const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showData, setShowData] = useState("all");
 
-    async function saveOpinion(userId, questionId, answer) {
-        const ref = doc(db, "portfolios", userId);
-
-        // Save user’s opinion for that question
-        await setDoc(
-            ref,
-            {
-                [questionId]: { answer, status: "pending" } // pending = waiting for result
-            },
-            { merge: true }
-        );
-    }
-
-
     useEffect(() => {
-        // 🔹 Keeps user logged in even after refresh
-        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+        const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
             if (firebaseUser) {
                 setUser(firebaseUser);
+                const userDocRef = doc(db, "users", firebaseUser.uid);
+
+                const unsubscribeSnapshot = onSnapshot(userDocRef, (doc) => {
+                    if (doc.exists()) {
+                        setUserData(doc.data());
+                    } else {
+                        setUserData(null);
+                    }
+                    setLoading(false);
+                });
+
+                return () => unsubscribeSnapshot();
             } else {
                 setUser(null);
+                setUserData(null);
+                setLoading(false);
             }
-            setLoading(false);
         });
 
-        return () => unsubscribe();
+        return () => unsubscribeAuth();
     }, []);
 
     const logout = async () => {
@@ -45,7 +42,7 @@ export default function ContextProvider({ children }) {
     };
 
     return (
-        <Context.Provider value={{ user, setUser, showData, setShowData, logout }}>
+        <Context.Provider value={{ user, userData, showData, setShowData, logout }}>
             {!loading ? children : <p className="text-white">Loading...</p>}
         </Context.Provider>
     );
