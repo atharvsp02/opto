@@ -9,6 +9,8 @@ import Cardano from "../../assets/cardano.svg";
 import Binance from "../../assets/binance.svg";
 import Polygon from "../../assets/Polygon.svg";
 import Ripple from "../../assets/ripple.svg";
+import Shuffle from '../AnimatedComponents/Shuffle';
+
 
 function Navbar() {
   const { user, userData, showData, setShowData } = useContext(Context);
@@ -28,9 +30,21 @@ function Navbar() {
 
   return (
     <header>
-      <div className="fixed top-0 left-0 right-0 bg-black/30 backdrop-blur-md shadow-[0_4px_50px_rgba(0,0,0,0.5)] text-white h-[75px] flex items-center z-50 px-[65px]">
+      {/* CHANGES MADE HERE:
+        - bg-black/30 -> bg-gray-900/50: A slightly less transparent background that better matches the theme.
+        - backdrop-blur-md -> backdrop-blur-lg: Increased the glassmorphism blur effect.
+        - Added border-b border-white/10: A subtle white bottom border for better separation.
+        - Removed the heavy custom shadow for a cleaner look.
+      */}
+      <div className="fixed top-0 left-0 right-0 bg-gray-900/50 backdrop-blur-lg border-b border-white/10 text-white h-[75px] flex items-center z-50 px-[65px]">
         <nav className="flex items-center justify-between w-full">
-          <h1 className="px-5 tracking-[6px] text-[35px] font-silkscreen">Opto</h1>
+
+          <h1 className="px-5 tracking-[6px] text-[35px] font-silkscreen"><Shuffle
+            text="OPTO"
+            fontSize="3rem"
+            fontFamily="'silkscreen', serif"
+
+          /></h1>
           <ul className="flex justify-start pl-[360px] gap-[150px] text-lg">
             <li><a href="">Live-opinion</a></li>
             <li><a href="">Pre-match</a></li>
