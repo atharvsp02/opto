@@ -16,6 +16,8 @@ import CardanoLogo from '../../assets/CardanoLogo.svg'
 import BinanceLogo from '../../assets/BinanceLogo.svg'
 import Polygon from '../../assets/Polygon.svg'
 import RippleLogo from '../../assets/RippleLogo.svg'
+import Aurora from '../AnimatedComponents/Aurora';
+
 
 
 export default function Login() {
@@ -97,11 +99,31 @@ export default function Login() {
           </div>
 
           {/* Right Side - Login Card */}
-          <div className="w-[50vw] h-[100vh] flex flex-col justify-center">
-            <div className="bg-gray-900/50 backdrop-blur-   w-[400px] h-[300px] rounded-[80px] shadow-[0_10px_30px_rgba(0,0,0,0.1)] p-8 absolute right-[200px] flex flex-col justify-center items-center">
-              <div className="btn">
-                <button onClick={handleGoogleLogin} className="bg-white text-[hsl(0,0%,54%)] border-none p-[11.5px] w-[290px] rounded-[9px] flex flex-row gap-4 justify-center items-center font-bold">
-                  <img src={googleLogo} alt="google-logo" className='w-5 h-5' />
+          <div className="w-[50vw] h-[100vh] flex flex-col justify-center items-center relative">
+
+
+
+            {/* Card wrapper */}
+            <div className="relative w-[400px] h-[300px]  rounded-[80px] shadow-[0_0px_40px_rgba(255,121,198,0.6)] hover:shadow-[0_10px_100px_rgba(255,121,198,0.8)]
+transition-shadow duration-500
+ overflow-hidden z-10 
+">
+              {/* Aurora background */}
+              <Aurora
+                colorStops={["#3A29FF", "#FF94B4", "#FF3232"]}
+                blend={0.3}
+                amplitude={1.5}
+                speed={0.5}
+
+              />
+
+              {/* Google Login Button */}
+              <div className="absolute inset-0 flex justify-center items-center z-10 pointer-events-none">
+                <button
+                  onClick={handleGoogleLogin}
+                  className="bg-white text-gray-600 p-3 w-[290px] rounded-[9px] flex items-center justify-center gap-4 font-bold pointer-events-auto"
+                >
+                  <img src={googleLogo} alt="google-logo" className="w-5 h-5" />
                   Continue with Google
                 </button>
               </div>
