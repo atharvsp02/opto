@@ -66,11 +66,11 @@ export default function Login() {
         {/* Main Content */}
         <div className="flex flex-row flex-1">
           {/* Left Side - Text Content */}
-          <div className="w-[50vw] h-[100vh] flex flex-col items-center relative top-[200px] left-[100px]">
+          <div className="w-[50vw] h-[100vh] flex flex-col items-center relative top-[150px] left-[100px]">
             <div className="flex flex-col items-center justify-center space-y-18">
               {/* Main "Hello you!" text */}
               <SplitText
-                text="Hello you!"
+                text="Welcome to OPTO!"
                 className="text-[120px] font-semibold text-center text-white"
                 delay={100}
                 duration={0.6}
@@ -99,15 +99,15 @@ export default function Login() {
           </div>
 
           {/* Right Side - Login Card */}
-          <div className="w-[50vw] h-[100vh] flex flex-col justify-center items-center relative">
+          <div className="w-[50vw] h-[100vh] flex flex-col top-[200px] items-center relative">
 
 
 
             {/* Card wrapper */}
             <div className="relative w-[400px] h-[300px]  rounded-[80px] shadow-[0_0px_40px_rgba(255,121,198,0.6)] hover:shadow-[0_10px_100px_rgba(255,121,198,0.8)]
-transition-shadow duration-500
- overflow-hidden z-10 
-">
+            transition-shadow duration-500
+            overflow-hidden z-10 "
+            >
               {/* Aurora background */}
               <Aurora
                 colorStops={["#3A29FF", "#FF94B4", "#FF3232"]}
