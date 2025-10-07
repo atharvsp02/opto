@@ -1,20 +1,33 @@
 import React, { useContext, useState } from "react";
-import { Context } from '../../context/context';
+import { Context } from "../../context/context";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBitcoin, faEthereum } from "@fortawesome/free-brands-svg-icons";
-import Coin from "../../assets/Coin.svg"
+import { signOut, onAuthStateChanged, signInWithPopup } from "firebase/auth";
+import { auth, provider } from "../../firebase";
+import Coin from "../../assets/Coin.svg";
 import Solana from "../../assets/solana.svg";
 import Doge from "../../assets/doge.svg";
 import Cardano from "../../assets/cardano.svg";
 import Binance from "../../assets/binance.svg";
 import Polygon from "../../assets/Polygon.svg";
 import Ripple from "../../assets/ripple.svg";
-import Shuffle from '../AnimatedComponents/Shuffle';
+import Shuffle from "../AnimatedComponents/Shuffle";
+import * as NavigationMenu from "@radix-ui/react-navigation-menu";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 
 function Navbar() {
   const { user, userData, showData, setShowData } = useContext(Context);
   const [selectedCoin, setSelectedCoin] = useState("All");
+  const [LoggedIn, setLoggedIn] = useState(false);
+
+  React.useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setLoggedIn(!!user); // true if user exists, false if not
+    });
+    return () => unsubscribe();
+  }, []);
 
   const cryptos = [
     { name: "All", key: "all" },
@@ -28,53 +41,102 @@ function Navbar() {
     { name: "Ripple", icon: Ripple, type: "svg", key: "xrp" },
   ];
 
+  const navigate = useNavigate();
+
+  const handleLogin = () => {
+    navigate("/login");
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      console.log("User logged out successfully");
+      // Optionally redirect or refresh
+      window.location.href = "/"; // or use React Router's navigate()
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
+  };
+
+
   return (
     <header>
-      {/* CHANGES MADE HERE:
-        - bg-black/30 -> bg-gray-900/50: A slightly less transparent background that better matches the theme.
-        - backdrop-blur-md -> backdrop-blur-lg: Increased the glassmorphism blur effect.
-        - Added border-b border-white/10: A subtle white bottom border for better separation.
-        - Removed the heavy custom shadow for a cleaner look.
-      */}
-      <div className="fixed top-0 left-0 right-0 bg-gray-900/50 backdrop-blur-lg border-b border-white/10 text-white h-[75px] flex items-center z-50 px-[65px]">
+      <div className="fixed top-0 left-0 right-0 bg-transparent backdrop-blur-lg  text-white h-[75px] flex items-center z-50 px-10 sm:px-16">
         <nav className="flex items-center justify-between w-full">
+          {/* Brand */}
+          <h1 className="tracking-[6px] text-[32px] font-silkscreen">
+            <Shuffle text="OPTO" fontSize="3rem" fontFamily="'silkscreen', serif" />
+          </h1>
 
-          <h1 className="px-5 tracking-[6px] text-[35px] font-silkscreen"><Shuffle
-            text="OPTO"
-            fontSize="3rem"
-            fontFamily="'silkscreen', serif"
-
-          /></h1>
-          <ul className="flex justify-start pl-[360px] gap-[150px] text-lg">
-            <li><a href="">Live-opinion</a></li>
-            <li><a href="">Pre-match</a></li>
-            <li><a href="">Promos</a></li>
-          </ul>
-
-          <div className="ml-auto flex items-center gap-4">
-            {/* This is the part that displays the coins */}
+          {/* Navigation */}
+          <NavigationMenu.Root className="relative flex items-center gap-11">
+            {/* Coins & Add Coins button */}
             {userData && (
-              <div className="text-lg font-semibold bg-white/10 p-2 px-4 rounded-full ">
-                <span className="flex gap-3 justify-center items-center px-2  "><img src={Coin} alt="" className="w-9 " /> {userData.coins.toLocaleString()}</span>
+              <div className="flex items-center gap-2 bg-white/10 px-4 py-1 rounded-full text-base font-medium">
+                <img src={Coin} alt="coin" className="w-9 h-9" />
+                {userData.coins.toLocaleString()}
               </div>
             )}
-            <button className="px-5 h-11 bg-[#136ef6c9] hover:bg-[hsl(216,93%,52%)] hover:scale-105 rounded-3xl transition-all text-lg">
+            <button className="px-5 py-2 bg-[#136ef6ee] hover:bg-[hsl(216,93%,52%)] hover:scale-105 rounded-3xl transition-all text-base">
               Add Coins
             </button>
-          </div>
 
-          <div className="flex items-center gap-4 mr-5 hover:bg-[#fbfbff49] p-2 rounded-3xl ml-4">
-            {user && user.photoURL && (
-              <img
-                src={user.photoURL}
-                alt="User Avatar"
-                className="w-11 h-11 rounded-full"
-              />
+            {/* Profile menu for logged-in users */}
+            {LoggedIn && user.photoURL ? (
+              <NavigationMenu.Item>
+                <NavigationMenu.Trigger className="hover:scale-105 transition-all">
+                  <img
+                    src={user.photoURL}
+                    alt="User Avatar"
+                    className="w-12 h-12 rounded-full border border-white/20 hover:border-white/50 transition-all"
+                  />
+                </NavigationMenu.Trigger>
+
+                <NavigationMenu.Content asChild
+
+                  className="absolute top-[60px] right-0 bg-white text-black rounded-3xl shadow-lg backdrop-blur-md p-5 min-w-[250px] font-bold text-lg">
+
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute top-[60px]  -translate-x-1/2 bg-white text-black rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.2)] backdrop-blur-md p-5 min-w-[250px]"
+                  >
+
+                    <ul className="flex flex-col gap-4">
+                      <li className="hover:bg-gray-300 rounded-3xl px-5 py-3 cursor-pointer text-center">
+                        Account
+                      </li>
+                      <li className="hover:bg-gray-300 rounded-3xl px-5 py-3 cursor-pointer text-center">
+                        Settings
+                      </li>
+                      <li
+                        onClick={handleLogout}
+                        className="hover:bg-red-600 bg-red-500 text-white rounded-3xl px-5 py-3 cursor-pointer text-center"
+                      >
+                        Logout
+                      </li>
+                    </ul>
+                  </motion.div>
+                </NavigationMenu.Content>
+              </NavigationMenu.Item>
+            ) : (
+              // Plain login button for logged-out users (no menu)
+              <button
+                onClick={handleLogin}
+                className="px-5 py-2 bg-[#136ef6ee] hover:bg-[hsl(216,93%,52%)] hover:scale-105 rounded-3xl transition-all text-base cursor-pointer  "
+              >
+                Login
+              </button>
             )}
-          </div>
+          </NavigationMenu.Root>
+
+
         </nav>
       </div>
 
+      {/* Crypto Filter Bar */}
       <div className="bg-transparent py-6 px-4 overflow-x-auto scrollbar-hide pt-[90px] mx-[50px]">
         <ul className="flex gap-4 min-w-max justify-between">
           {cryptos.map((coin) => (
@@ -94,8 +156,12 @@ function Navbar() {
                   color: "black",
                 }}
               >
-                {coin.type === "fa" && <FontAwesomeIcon icon={coin.icon} size="xl" style={{ color: coin.setIconColor }} />}
-                {coin.type === "svg" && <img src={coin.icon} alt={coin.name} style={{ width: "22px", height: "22px" }} />}
+                {coin.type === "fa" && (
+                  <FontAwesomeIcon icon={coin.icon} size="xl" style={{ color: coin.setIconColor }} />
+                )}
+                {coin.type === "svg" && (
+                  <img src={coin.icon} alt={coin.name} style={{ width: "22px", height: "22px" }} />
+                )}
                 {coin.name}
               </button>
             </li>

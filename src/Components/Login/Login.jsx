@@ -54,7 +54,7 @@ export default function Login() {
           coins: 1000,
         });
       }
-      navigate('/MainPage');
+      navigate('/');
     } catch (error) {
       console.error('Login failed:', error);
     }
@@ -121,7 +121,7 @@ export default function Login() {
               <div className="absolute inset-0 flex justify-center items-center z-10 pointer-events-none">
                 <button
                   onClick={handleGoogleLogin}
-                  className="bg-white text-gray-600 p-3 w-[290px] rounded-[9px] flex items-center justify-center gap-4 font-bold pointer-events-auto"
+                  className="bg-white text-gray-600 p-3 w-[290px] rounded-[9px] flex items-center justify-center gap-4 font-bold pointer-events-auto hover:scale-100"
                 >
                   <img src={googleLogo} alt="google-logo" className="w-5 h-5" />
                   Continue with Google
