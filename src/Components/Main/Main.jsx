@@ -393,13 +393,13 @@ function Main() {
         </div>
 
         {/* RIGHT SIDE */}
-        <div className="flex-1 w-1 border border-white/20 bg-black/10 backdrop-blur-xl rounded-2xl shadow-[0_0_30px_rgba(255,255,255,0.08)] h-[100vh] p-6 relative overflow-hidden">
+        <div className="flex-1 w-1 border border-white/20 bg-black/10 backdrop-blur-xl rounded-2xl shadow-[0_0_30px_rgba(255,255,255,0.08)] h-[100vh]  relative overflow-hidden">
           {/* Subtle glow layers */}
           <div className="absolute inset-0 rounded-2xl bg-white/10 border-white" />
           <div className="absolute inset-0 rounded-2xl " />
 
           {/* Portfolio component */}
-          <div className="relative z-10">
+          <div className="relative z-10 ">
             <Portfolio responses={responses} idToName={idToName} />
           </div>
         </div>

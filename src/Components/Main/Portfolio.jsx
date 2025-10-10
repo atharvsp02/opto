@@ -25,23 +25,20 @@ function Portfolio({ responses, idToName }) {
     }
 
     return (
-        <div className="p-4  overflow-y-auto h-full">
-
-            <h2 className="text-xl  font-bold mb-4">Your Prediction History</h2>
+        <div className="relative h-full max-h-[90vh] overflow-y-auto px-11 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+            <h2 className="text-xl font-bold mb-4 relative flex justify-center  top-0 bg-transparent  p-4 pt-9 rounded-md z-10">
+                Your Prediction History
+            </h2>
 
             {sortedRoundIds.map((roundId) => {
                 const roundData = responses[roundId];
                 const roundTimestamp = new Date(parseInt(roundId.split('_')[1])).toLocaleString();
 
-
-                console.log(`Rendering data for ${roundId}:`, roundData);
-
                 return (
                     <div
                         key={roundId}
-                        className="mb-6 p-4 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-lg shadow-[0_0_25px_rgba(255,255,255,0.06)]  transition-all duration-500"
+                        className="mb-6 p-4 rounded-2xl border border-white/10 bg-black/30 backdrop-blur-lg shadow-[0_0_25px_rgba(255,255,255,0.06)]  transition-all duration-500"
                     >
-
                         <h3 className="text-sm font-semibold text-gray-300 mb-2">{roundTimestamp}</h3>
                         <table className="w-full text-left border-collapse">
                             <thead>
@@ -52,19 +49,23 @@ function Portfolio({ responses, idToName }) {
                                 </tr>
                             </thead>
                             <tbody>
-
-                                {roundData && Object.entries(roundData).map(([qid, data]) => (
-                                    <tr key={`${roundId}-${qid}`}>
-                                        <td className="border-b p-2">{idToName[qid] || qid.toUpperCase()}</td>
-                                        <td className="border-b p-2">{data.answer ? data.answer.toUpperCase() : "—"}</td>
-                                        <td className={`border-b p-2 font-bold ${data.status === "correct" ? "text-green-400"
-                                            : data.status === "wrong" ? "text-red-400"
-                                                : "text-gray-400"
-                                            }`}>
-                                            {data.status}
-                                        </td>
-                                    </tr>
-                                ))}
+                                {roundData &&
+                                    Object.entries(roundData).map(([qid, data]) => (
+                                        <tr key={`${roundId}-${qid}`}>
+                                            <td className="border-b p-2">{idToName[qid] || qid.toUpperCase()}</td>
+                                            <td className="border-b p-2">{data.answer ? data.answer.toUpperCase() : "—"}</td>
+                                            <td
+                                                className={`border-b p-2 font-bold ${data.status === "correct"
+                                                    ? "text-green-400"
+                                                    : data.status === "wrong"
+                                                        ? "text-red-400"
+                                                        : "text-gray-400"
+                                                    }`}
+                                            >
+                                                {data.status}
+                                            </td>
+                                        </tr>
+                                    ))}
                             </tbody>
                         </table>
                     </div>
@@ -72,6 +73,7 @@ function Portfolio({ responses, idToName }) {
             })}
         </div>
     );
+
 };
 
 export default Portfolio;
