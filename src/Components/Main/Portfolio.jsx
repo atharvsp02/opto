@@ -25,7 +25,7 @@ function Portfolio({ responses, idToName }) {
     }
 
     return (
-        <div className="relative h-full max-h-[90vh] overflow-y-auto px-11 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+        <div className="relative h-full max-h-[100vh] overflow-y-auto px-11 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
             <h2 className="text-xl font-bold mb-4 relative flex justify-center  top-0 bg-transparent  p-4 pt-9 rounded-md z-10">
                 Your Prediction History
             </h2>

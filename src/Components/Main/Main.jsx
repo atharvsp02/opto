@@ -363,31 +363,39 @@ function Main() {
               )}
 
               <div className="flex flex-row justify-center pt-4">
+                {/* YES Button */}
                 <button
                   onClick={() => handleResponse(q.id, "yes")}
                   disabled={currentRoundResponses[q.id] || now >= expiry}
-                  className={`mx-5 px-5 py-2 w-[400px] rounded-md shadow-xl text-xl transition-all ${currentRoundResponses[q.id]?.answer === "yes"
-                    ? "bg-[#0064FB]"
-                    : now >= expiry
-                      ? "bg-gray-500 cursor-not-allowed"
-                      : "bg-[#0064FB]/70 hover:bg-[#0064FB]"
-                    } cursor-pointer hover:scale-105 prediction-button`}
+                  className={`mx-5 px-5 py-2 w-[400px] rounded-md shadow-xl text-xl transition-all cursor-pointer 
+                    ${currentRoundResponses[q.id]?.answer === "yes"
+                      ? "bg-gray-500"
+                      : now >= expiry || currentRoundResponses[q.id]
+                        ? "bg-gray-500 cursor-not-allowed"
+                        : "bg-[#0064FB]/70 hover:bg-[#0064FB] hover:scale-105"
+                    }
+                    `}
                 >
                   Yes
                 </button>
+
+                {/* NO Button */}
                 <button
                   onClick={() => handleResponse(q.id, "no")}
                   disabled={currentRoundResponses[q.id] || now >= expiry}
-                  className={`mx-5 px-5 py-2 w-[400px] rounded-md shadow-xl text-xl transition-all ${currentRoundResponses[q.id]?.answer === "no"
-                    ? "bg-[#FF414B]"
-                    : now >= expiry
-                      ? "bg-gray-500 cursor-not-allowed"
-                      : "bg-[#FF414B]/70 hover:bg-[#FF414B]"
-                    } cursor-pointer hover:scale-105 prediction-button`}
+                  className={`mx-5 px-5 py-2 w-[400px] rounded-md shadow-xl text-xl transition-all cursor-pointer 
+                    ${currentRoundResponses[q.id]?.answer === "no"
+                      ? "bg-gray-500"
+                      : now >= expiry || currentRoundResponses[q.id]
+                        ? "bg-gray-500 cursor-not-allowed"
+                        : "bg-[#FF414B]/70 hover:bg-[#FF414B] hover:scale-105"
+                    }
+                    `}
                 >
                   No
                 </button>
               </div>
+
             </div>
           ))}
         </div>
@@ -399,7 +407,7 @@ function Main() {
           <div className="absolute inset-0 rounded-2xl " />
 
           {/* Portfolio component */}
-          <div className="relative z-10 ">
+          <div className="relative z-10 h-full">
             <Portfolio responses={responses} idToName={idToName} />
           </div>
         </div>
