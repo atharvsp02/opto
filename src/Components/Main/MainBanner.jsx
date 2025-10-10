@@ -7,6 +7,7 @@ import CardanoBanner from "../../assets/CardanoBanner.svg";
 import BinanceBanner from "../../assets/BinanceBanner.svg";
 import PolygonBanner from "../../assets/PolygonBanner.svg";
 import RippleBanner from "../../assets/RippleBanner.svg";
+import { motion } from "framer-motion";
 
 export default function MainBanner() {
     // Original images
@@ -79,7 +80,13 @@ export default function MainBanner() {
     }, [index, images.length]);
 
     return (
-        <div className="relative flex items-center justify-center bg-transparent "> {/* CHANGED: made relative for absolute arrows */}
+
+        <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="relative flex items-center justify-center bg-transparent"
+        >
 
             {/* Left Arrow */}
             <button
@@ -129,7 +136,7 @@ export default function MainBanner() {
                 &#8594;
             </button>
 
-        </div>
+        </motion.div>
     );
 
 }

@@ -1,24 +1,30 @@
-import { Routes, Route } from 'react-router-dom';
-import Login from './Components/Login/Login';
-import MainPage from './Components/Main/MainPage';
-import Profile from './Components/Profile/Profile';
-import './App.css'
+import React, { useContext } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import Login from "./Components/Login/Login";
+import MainPage from "./Components/Main/MainPage";
+import Profile from "./Components/Profile/Profile";
+import { Context } from "./context/context";
+import SkeletonLoader from "./Components/AnimatedComponents/SkeletonLoader";
+import "./App.css";
 
 function App() {
+  const { user, authLoading } = useContext(Context);
+
+  // ⏳ While Firebase still checking session
+  if (authLoading) {
+    return <SkeletonLoader />;
+  }
+
+  // ✅ Once done, then render routes
   return (
-    <>
-      <div className="">
-        <Routes>
-          <Route path="/Login" element={<Login />} />
-          <Route path="/" element={<MainPage />} />
-          <Route path="/profile" element={<Profile />} />
-        </Routes>
-      </div>
-    </>
+    <Routes>
+      <Route path="/login" element={!user ? <Login /> : <Navigate to="/" replace />} />
+      <Route path="/" element={user ? <MainPage /> : <Navigate to="/login" replace />} />
+      <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to={user ? "/" : "/login"} replace />} />
+    </Routes>
   );
 }
 
+
 export default App;
-
-
-

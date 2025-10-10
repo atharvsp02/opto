@@ -24,7 +24,7 @@ export default function Login() {
   const navigate = useNavigate();
 
   const handleAnimationComplete = () => {
-    console.log('All letters have animated!');
+
   };
 
   const imageLogos = [
@@ -56,7 +56,7 @@ export default function Login() {
       }
       navigate('/');
     } catch (error) {
-      console.error('Login failed:', error);
+
     }
   }
 
@@ -71,7 +71,7 @@ export default function Login() {
               {/* Main "Hello you!" text */}
               <SplitText
                 text="Welcome to OPTO!"
-                className="text-[120px] font-semibold text-center text-white"
+                className="text-[100px] font-semibold text-center text-white"
                 delay={100}
                 duration={0.6}
                 ease="power3.out"

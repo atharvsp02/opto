@@ -5,7 +5,7 @@ import GlassSurfaceBackground from "../AnimatedComponents/GlassSurface";
 
 
 function Portfolio({ responses, idToName }) {
-    console.log("Props received by Portfolio:", responses);
+
 
     const { user } = useContext(Context);
 
@@ -18,7 +18,6 @@ function Portfolio({ responses, idToName }) {
         .sort((a, b) => b.localeCompare(a));
 
 
-    console.log("Portfolio found these round IDs:", sortedRoundIds);
 
     if (sortedRoundIds.length === 0) {
         return <p className="p-4">No opinions yet!</p>;

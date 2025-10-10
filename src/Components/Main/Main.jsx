@@ -10,16 +10,10 @@ import Ripple from "../../assets/ripple.svg";
 import { db } from "../../firebase";
 import { Context } from "../../context/context";
 import Portfolio from "./Portfolio";
-import {
-  doc,
-  setDoc,
-  getDoc,
-  updateDoc,
-  onSnapshot,
-  increment,
-} from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc, onSnapshot, increment, } from "firebase/firestore";
 import TargetCursor from "../AnimatedComponents/TargetCursor";
 import GlassSurfaceBackground from "../AnimatedComponents/GlassSurface";
+import { motion } from "framer-motion";
 
 function Main() {
   const { showData, user } = useContext(Context);
@@ -221,7 +215,7 @@ function Main() {
       };
       await setDoc(responsesDocRef, dataToSave, { merge: true });
     } catch (err) {
-      console.error("FIREBASE ERROR:", err);
+
     }
   };
 
@@ -266,7 +260,7 @@ function Main() {
           const data = currentRoundDoc.data();
           if (data?.isCreatingRound || data?.expiryTime.toDate() > expiry) return;
           await updateDoc(roundDocRef, { isCreatingRound: true });
-          const newExpiryDate = new Date(Date.now() + 5 * 60 * 1000);
+          const newExpiryDate = new Date(Date.now() + 60 * 60 * 1000);
           await updateDoc(roundDocRef, {
             expiryTime: newExpiryDate,
             isCreatingRound: false,
@@ -306,8 +300,13 @@ function Main() {
   };
 
   return (
-    <div className="relative min-h-screen pt-[75px] px-[50px] text-white overflow-hidden bg-transparent">
 
+    <motion.div
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.5 }}
+      className="relative min-h-screen pt-[75px] px-[50px] text-white overflow-hidden bg-transparent"
+    >
       {/* 🧊 Frosted glass background behind everything */}
       <GlassSurfaceBackground />
 
@@ -367,7 +366,7 @@ function Main() {
                 <button
                   onClick={() => handleResponse(q.id, "yes")}
                   disabled={currentRoundResponses[q.id] || now >= expiry}
-                  className={`mx-5 px-5 py-2 w-[400px] rounded-md shadow-xl text-xl transition-all cursor-pointer 
+                  className={`prediction-button mx-5 px-5 py-2 w-[400px] rounded-md shadow-xl text-xl transition-all cursor-pointer 
                     ${currentRoundResponses[q.id]?.answer === "yes"
                       ? "bg-gray-500"
                       : now >= expiry || currentRoundResponses[q.id]
@@ -383,7 +382,7 @@ function Main() {
                 <button
                   onClick={() => handleResponse(q.id, "no")}
                   disabled={currentRoundResponses[q.id] || now >= expiry}
-                  className={`mx-5 px-5 py-2 w-[400px] rounded-md shadow-xl text-xl transition-all cursor-pointer 
+                  className={`prediction-button mx-5 px-5 py-2 w-[400px] rounded-md shadow-xl text-xl transition-all cursor-pointer 
                     ${currentRoundResponses[q.id]?.answer === "no"
                       ? "bg-gray-500"
                       : now >= expiry || currentRoundResponses[q.id]
@@ -414,7 +413,7 @@ function Main() {
 
 
       </div>
-    </div>
+    </motion.div>
   );
 }
 

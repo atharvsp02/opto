@@ -49,15 +49,19 @@ function Navbar() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      console.log("User logged out successfully");
+
       window.location.href = "/";
     } catch (error) {
-      console.error("Error during logout:", error);
+
     }
   };
 
   return (
-    <header>
+    <motion.header
+      initial={{ opacity: 0, y: -50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+    >
       <div className="fixed top-0 left-0 right-0 bg-transparent backdrop-blur-lg text-white h-[75px] flex items-center z-50 px-10 sm:px-16">
         <nav className="flex items-center justify-between w-full">
           {/* Brand */}
@@ -141,8 +145,8 @@ function Navbar() {
                   setShowData(coin.key);
                 }}
                 className={`px-5 py-3 rounded-full text-base font-semibold transition-all border-2 flex items-center gap-2 ${selectedCoin === coin.name
-                    ? "scale-105 shadow-[0_0_15px_1px_rgba(255,255,255,0.7)]"
-                    : "opacity-90 hover:opacity-100"
+                  ? "scale-105 shadow-[0_0_15px_1px_rgba(255,255,255,0.7)]"
+                  : "opacity-90 hover:opacity-100"
                   }`}
                 style={{
                   borderColor: "#fbfbff90",
@@ -162,8 +166,9 @@ function Navbar() {
           ))}
         </ul>
       </div>
-    </header>
+    </motion.header>
   );
 }
 
 export default Navbar;
+

@@ -18,10 +18,13 @@ export default function MainPage() {
       {/* Main Content */}
 
 
-        <div className=" bg-black min-h-full ">
-        <Navbar />
-        <MainBanner />
-        <Main />
+      <div className=" bg-black min-h-full ">
+        
+
+          <Navbar />
+          <MainBanner />
+          <Main />
+        
       </div>
 
 
