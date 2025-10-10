@@ -1,8 +1,11 @@
 import React, { useContext } from "react";
 import { Context } from "../../context/context";
+import GlassSurfaceBackground from "../AnimatedComponents/GlassSurface";
+
+
 
 function Portfolio({ responses, idToName }) {
-    console.log("Props received by Portfolio:", responses);     
+    console.log("Props received by Portfolio:", responses);
 
     const { user } = useContext(Context);
 
@@ -14,7 +17,7 @@ function Portfolio({ responses, idToName }) {
         .filter(key => key.startsWith('round_'))
         .sort((a, b) => b.localeCompare(a));
 
-   
+
     console.log("Portfolio found these round IDs:", sortedRoundIds);
 
     if (sortedRoundIds.length === 0) {
@@ -22,18 +25,23 @@ function Portfolio({ responses, idToName }) {
     }
 
     return (
-        <div className="p-4 overflow-y-auto h-full">
-            <h2 className="text-xl font-bold mb-4">Your Prediction History</h2>
+        <div className="p-4  overflow-y-auto h-full">
+
+            <h2 className="text-xl  font-bold mb-4">Your Prediction History</h2>
 
             {sortedRoundIds.map((roundId) => {
                 const roundData = responses[roundId];
                 const roundTimestamp = new Date(parseInt(roundId.split('_')[1])).toLocaleString();
 
-                
+
                 console.log(`Rendering data for ${roundId}:`, roundData);
 
                 return (
-                    <div key={roundId} className="mb-6 p-3 bg-white/10 rounded-lg">
+                    <div
+                        key={roundId}
+                        className="mb-6 p-4 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-lg shadow-[0_0_25px_rgba(255,255,255,0.06)]  transition-all duration-500"
+                    >
+
                         <h3 className="text-sm font-semibold text-gray-300 mb-2">{roundTimestamp}</h3>
                         <table className="w-full text-left border-collapse">
                             <thead>
@@ -44,7 +52,7 @@ function Portfolio({ responses, idToName }) {
                                 </tr>
                             </thead>
                             <tbody>
-                                
+
                                 {roundData && Object.entries(roundData).map(([qid, data]) => (
                                     <tr key={`${roundId}-${qid}`}>
                                         <td className="border-b p-2">{idToName[qid] || qid.toUpperCase()}</td>
