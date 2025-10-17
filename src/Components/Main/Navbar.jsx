@@ -12,14 +12,14 @@ import Binance from "../../assets/binance.svg";
 import Polygon from "../../assets/Polygon.svg";
 import Ripple from "../../assets/ripple.svg";
 import Shuffle from "../AnimatedComponents/Shuffle";
-import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 function Navbar() {
   const { user, userData, showData, setShowData } = useContext(Context);
   const [selectedCoin, setSelectedCoin] = useState("All");
   const [LoggedIn, setLoggedIn] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false); // ← ADD THIS
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -27,6 +27,17 @@ function Navbar() {
     });
     return () => unsubscribe();
   }, []);
+
+  // ← ADD THIS: Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuOpen && !e.target.closest('.profile-menu-container')) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [menuOpen]);
 
   const cryptos = [
     { name: "All", key: "all" },
@@ -49,10 +60,10 @@ function Navbar() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-
+      setMenuOpen(false); // ← Close menu after logout
       window.location.href = "/";
     } catch (error) {
-
+      console.error("Logout error:", error);
     }
   };
 
@@ -66,11 +77,16 @@ function Navbar() {
         <nav className="flex items-center justify-between w-full">
           {/* Brand */}
           <h1 className="tracking-[6px] text-[32px] font-silkscreen">
-            <Shuffle text="OPTO" fontSize="3rem" fontFamily="'silkscreen', serif" />
+            <Shuffle
+              text="OPTO"
+              fontSize="3rem"
+              fontFamily="'silkscreen', serif"
+              letterColors={['#FFB000', '#ffffff', '#ffffff', '#FFB000']}
+            />
           </h1>
 
           {/* Navigation */}
-          <NavigationMenu.Root className="relative flex items-center gap-11">
+          <div className="relative flex items-center gap-11">
             {userData && (
               <div className="flex items-center gap-2 bg-white/10 px-4 py-1 rounded-full text-base font-medium">
                 <img src={Coin} alt="coin" className="w-9 h-9" />
@@ -82,47 +98,50 @@ function Navbar() {
               Add Coins
             </button>
 
-            {/* Show profile only if user is logged in AND has a photoURL */}
+            {/* Profile Menu - REPLACED NavigationMenu with simple state */}
             {LoggedIn && user?.photoURL ? (
-              <NavigationMenu.Item>
-                <NavigationMenu.Trigger className="hover:scale-105 transition-all">
-                  <img
-                    src={user.photoURL}
-                    alt=""
-                    className="w-12 h-12 rounded-full border border-white/20 hover:border-white/50 transition-all object-cover"
-                  />
-                </NavigationMenu.Trigger>
+              <div className="relative profile-menu-container">
+                <img
+                  src={user.photoURL}
+                  alt="Profile"
+                  onClick={() => setMenuOpen(!menuOpen)}
+                  className="w-12 h-12 rounded-full border border-white/20 hover:border-white/50 hover:scale-105 transition-all object-cover cursor-pointer"
+                />
 
-                <NavigationMenu.Content
-                  asChild
-                  className="absolute top-[60px] right-0 bg-white text-black rounded-3xl shadow-lg backdrop-blur-md p-5 min-w-[250px] font-bold text-lg"
-                >
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute top-[60px] -translate-x-1/2 bg-white text-black rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.2)] backdrop-blur-md p-5 min-w-[250px]"
-                  >
-                    <ul className="flex flex-col gap-4">
-                      <li className="hover:bg-gray-300 rounded-3xl px-5 py-3 cursor-pointer text-center">
-                        Account
-                      </li>
-                      <li className="hover:bg-gray-300 rounded-3xl px-5 py-3 cursor-pointer text-center">
-                        Settings
-                      </li>
-                      <li
-                        onClick={handleLogout}
-                        className="hover:bg-red-600 bg-red-500 text-white rounded-3xl px-5 py-3 cursor-pointer text-center"
-                      >
-                        Logout
-                      </li>
-                    </ul>
-                  </motion.div>
-                </NavigationMenu.Content>
-              </NavigationMenu.Item>
+                <AnimatePresence>
+                  {menuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute top-[60px] right-0 bg-white text-black rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.2)] backdrop-blur-md p-5 min-w-[250px] z-[100]"
+                    >
+                      <ul className="flex flex-col gap-4">
+                        <li
+                          onClick={() => setMenuOpen(false)}
+                          className="hover:bg-gray-200 rounded-3xl px-5 py-3 cursor-pointer text-center font-bold text-lg transition-all"
+                        >
+                          Account
+                        </li>
+                        <li
+                          onClick={() => setMenuOpen(false)}
+                          className="hover:bg-gray-200 rounded-3xl px-5 py-3 cursor-pointer text-center font-bold text-lg transition-all"
+                        >
+                          Settings
+                        </li>
+                        <li
+                          onClick={handleLogout}
+                          className="hover:bg-red-600 bg-red-500 text-white rounded-3xl px-5 py-3 cursor-pointer text-center font-bold text-lg transition-all"
+                        >
+                          Logout
+                        </li>
+                      </ul>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             ) : (
-              // Login button (no menu)
               <button
                 onClick={handleLogin}
                 className="px-5 py-2 bg-[#136ef6ee] hover:bg-[hsl(216,93%,52%)] hover:scale-105 rounded-3xl transition-all text-base cursor-pointer"
@@ -130,7 +149,7 @@ function Navbar() {
                 Login
               </button>
             )}
-          </NavigationMenu.Root>
+          </div>
         </nav>
       </div>
 
@@ -171,4 +190,3 @@ function Navbar() {
 }
 
 export default Navbar;
-

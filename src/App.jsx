@@ -18,12 +18,18 @@ function App() {
   // ✅ Once done, then render routes
   return (
     <Routes>
-      <Route path="/login" element={!user ? <Login /> : <Navigate to="/" replace />} />
-      <Route path="/" element={user ? <MainPage /> : <Navigate to="/login" replace />} />
-      <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" replace />} />
-      <Route path="*" element={<Navigate to={user ? "/" : "/login"} replace />} />
+
+      <Route path="/" element={<MainPage />} />
+
+      <Route path="/login" element={<Login />} />
+
+      <Route path="/profile" element={<Profile />} />
+
+      <Route path="*" element={<Navigate to={"/"} />} />
+
+
     </Routes>
-  );
+  )
 }
 
 

@@ -28,14 +28,15 @@ export default function Login() {
   };
 
   const imageLogos = [
-    { src: BitcoinLogo, alt: "Company 1", href: "https://company1.com" },
-    { src: EthereumLogo, alt: "Company 2", href: "https://company2.com" },
-    { src: SolanaLogo, alt: "Company 3", href: "https://company3.com" },
-    { src: DogecoinLogo, alt: "Company 3", href: "https://company3.com" },
-    { src: CardanoLogo, alt: "Company 3", href: "https://company3.com" },
-    { src: BinanceLogo, alt: "Company 3", href: "https://company3.com" },
-    { src: Polygon, alt: "Company 3", href: "https://company3.com" },
-    { src: RippleLogo, alt: "Company 3", href: "https://company3.com" },
+    { src: BitcoinLogo, alt: "Bitcoin", href: "https://bitcoin.org" },
+    { src: EthereumLogo, alt: "Ethereum", href: "https://ethereum.org" },
+    { src: SolanaLogo, alt: "Solana", href: "https://solana.com" },
+    { src: DogecoinLogo, alt: "Dogecoin", href: "https://dogecoin.com" },
+    { src: CardanoLogo, alt: "Cardano", href: "https://cardano.org" },
+    { src: BinanceLogo, alt: "Binance Coin", href: "https://www.bnbchain.org" },
+    { src: Polygon, alt: "Polygon", href: "https://polygon.technology" },
+    { src: RippleLogo, alt: "Ripple (XRP)", href: "https://ripple.com/xrp" },
+
 
   ];
 

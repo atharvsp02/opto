@@ -38,6 +38,7 @@ export default {
       backgroundSize: {
         'grid': '100px 100px',
       },
+        
     },
   },
   plugins: [],
