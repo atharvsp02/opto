@@ -25,13 +25,13 @@ function Main() {
   const hasCheckedRef = useRef(false);
   const currentRoundIdRef = useRef(null);
 
-  // 🕒 update time every second
+  
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
 
-  // 🔁 listen for central timer (Firestore)
+  
   useEffect(() => {
     const roundDocRef = doc(db, "rounds", "current");
 
@@ -75,7 +75,7 @@ function Main() {
     return () => unsubscribe();
   }, []);
 
-  // 👤 listen for user's responses
+  
   useEffect(() => {
     if (!user || !expiry) return;
     const ref = doc(db, "responses", user.uid);
@@ -94,7 +94,7 @@ function Main() {
     return () => unsubscribe();
   }, [user, expiry]);
 
-  // 🌐 fetch prices
+  
   const fetchPrices = async (newExpiry) => {
     try {
       const res = await fetch(
@@ -305,26 +305,29 @@ function Main() {
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: 0.5 }}
-      className="relative min-h-screen pt-[75px] px-[50px] text-white overflow-hidden bg-transparent"
+      className="relative min-h-screen pt-[75px] px-4 sm:px-6 lg:px-[50px] text-white overflow-hidden bg-transparent"
     >
-      {/* 🧊 Frosted glass background behind everything */}
+      
       <GlassSurfaceBackground />
 
-      <TargetCursor targetSelector=".prediction-button" />
+      
+      <div className="hidden md:block">
+        <TargetCursor targetSelector=".prediction-button" />
+      </div>
 
-      <div className="flex flex-row gap-4 relative z-10">
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-4 relative z-10">
         {/* LEFT SIDE */}
-        <div className="flex-1 min-w-[55vw] flex flex-col space-y-11">
-          <p className="font-bold text-3xl mb-2 sticky top-0 py-4 z-10">
+        <div className="flex-1 lg:min-w-[55vw] flex flex-col space-y-6 sm:space-y-8 lg:space-y-11">
+          <p className="font-bold text-2xl sm:text-3xl mb-2 sticky top-0 py-4 z-10">
             {showData === "all"
               ? "ALL"
               : idToName[showData]?.toUpperCase() || ""}
           </p>
 
           {filteredQuestions.length === 0 && (
-            <div className="text-center text-gray-400 text-xl mt-20">
+            <div className="text-center text-gray-400 text-lg sm:text-xl mt-20">
               <p>⏳ Loading questions...</p>
-              <p className="text-sm mt-2">
+              <p className="text-xs sm:text-sm mt-2">
                 Fetching crypto prices and generating predictions
               </p>
             </div>
@@ -333,61 +336,59 @@ function Main() {
           {filteredQuestions.map((q) => (
             <div
               key={q.id}
-              className="p-5 bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_0_30px_rgba(255,255,255,0.05)] transition-all "
+              className="p-4 sm:p-5 bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_0_30px_rgba(255,255,255,0.05)] transition-all"
             >
 
-              <a href="#" className="text-[15px] rounded-full py-1">
+              <a href="#" className="text-xs sm:text-[15px] rounded-full py-1">
                 {q.traders} Traders
               </a>
-              <div className="flex flex-row justify-between">
-                <p className="py-1 mb-11 text-lg">{q.text}</p>
+              <div className="flex flex-row justify-between items-start">
+                <p className="py-1 mb-6 sm:mb-11 text-base sm:text-lg pr-2">{q.text}</p>
                 <img
                   src={q.img}
                   alt={q.id}
-                  className="w-[60px] relative right-4"
+                  className="w-[40px] sm:w-[50px] lg:w-[60px] flex-shrink-0"
                 />
               </div>
-              <p className="text-base text-yellow-300 font-mono">
+              <p className="text-sm sm:text-base text-yellow-300 font-mono">
                 Time Left: {formatCountdown(q.expiration)}
               </p>
 
               {currentRoundResponses[q.id]?.status === "correct" && (
-                <p className="text-green-400 font-bold">✅ Correct</p>
+                <p className="text-green-400 font-bold text-sm sm:text-base">✅ Correct</p>
               )}
               {currentRoundResponses[q.id]?.status === "wrong" && (
-                <p className="text-red-400 font-bold">❌ Wrong</p>
+                <p className="text-red-400 font-bold text-sm sm:text-base">❌ Wrong</p>
               )}
               {currentRoundResponses[q.id]?.status === "pending" && (
-                <p className="text-gray-400">⏳ Waiting for expiry…</p>
+                <p className="text-gray-400 text-sm sm:text-base">⏳ Waiting for expiry…</p>
               )}
 
-              <div className="flex flex-row justify-center pt-4">
-                {/* YES Button */}
+              <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-5 pt-4">
                 <button
                   onClick={() => handleResponse(q.id, "yes")}
                   disabled={currentRoundResponses[q.id] || now >= expiry}
-                  className={`prediction-button mx-5 px-5 py-2 w-[400px] rounded-md shadow-xl text-xl transition-all cursor-pointer 
+                  className={`prediction-button px-4 sm:px-5 py-2 sm:py-2 w-full sm:w-[400px] rounded-md shadow-xl text-lg sm:text-xl transition-all 
                     ${currentRoundResponses[q.id]?.answer === "yes"
-                      ? "bg-gray-500"
+                      ? "bg-gray-500 cursor-default"
                       : now >= expiry || currentRoundResponses[q.id]
-                        ? "bg-gray-500 cursor-not-allowed"
-                        : "bg-[#0064FB]/70 hover:bg-[#0064FB] hover:scale-105"
+                        ? "bg-gray-500 cursor-default"
+                        : "bg-[#0064FB]/70 hover:bg-[#0064FB] hover:scale-105 cursor-pointer"
                     }
                     `}
                 >
                   Yes
                 </button>
 
-                {/* NO Button */}
                 <button
                   onClick={() => handleResponse(q.id, "no")}
                   disabled={currentRoundResponses[q.id] || now >= expiry}
-                  className={`prediction-button mx-5 px-5 py-2 w-[400px] rounded-md shadow-xl text-xl transition-all cursor-pointer 
+                  className={`prediction-button px-4 sm:px-5 py-2 sm:py-2 w-full sm:w-[400px] rounded-md shadow-xl text-lg sm:text-xl transition-all 
                     ${currentRoundResponses[q.id]?.answer === "no"
-                      ? "bg-gray-500"
+                      ? "bg-gray-500 cursor-default"
                       : now >= expiry || currentRoundResponses[q.id]
-                        ? "bg-gray-500 cursor-not-allowed"
-                        : "bg-[#FF414B]/70 hover:bg-[#FF414B] hover:scale-105"
+                        ? "bg-gray-500 cursor-default"
+                        : "bg-[#FF414B]/70 hover:bg-[#FF414B] hover:scale-105 cursor-pointer"
                     }
                     `}
                 >
@@ -399,13 +400,10 @@ function Main() {
           ))}
         </div>
 
-        {/* RIGHT SIDE */}
-        <div className="flex-1 w-1 border border-white/20 bg-black/10 backdrop-blur-xl rounded-2xl shadow-[0_0_30px_rgba(255,255,255,0.08)] h-[100vh]  relative overflow-hidden">
-          {/* Subtle glow layers */}
+        <div className="flex-1 lg:w-1 border border-white/20 bg-black/10 backdrop-blur-xl rounded-2xl shadow-[0_0_30px_rgba(255,255,255,0.08)] h-[60vh] sm:h-[70vh] lg:h-[100vh] mt-6 lg:mt-0 relative overflow-hidden">
           <div className="absolute inset-0 rounded-2xl bg-white/10 border-white" />
           <div className="absolute inset-0 rounded-2xl " />
 
-          {/* Portfolio component */}
           <div className="relative z-10 h-full">
             <Portfolio responses={responses} idToName={idToName} />
           </div>

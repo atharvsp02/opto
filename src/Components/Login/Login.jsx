@@ -64,15 +64,12 @@ export default function Login() {
   return (
     <>
       <div className="h-screen flex flex-col bg-transparent relative overflow-hidden">
-        {/* Main Content */}
-        <div className="flex flex-row flex-1">
-          {/* Left Side - Text Content */}
-          <div className="w-[50vw] h-[100vh] flex flex-col items-center relative top-[150px] left-[100px]">
-            <div className="flex flex-col items-center justify-center space-y-18">
-              {/* Main "Hello you!" text */}
+        <div className="flex flex-col md:flex-row flex-1">
+          <div className="w-full md:w-[50vw] h-[50vh] md:h-[100vh] flex flex-col items-center relative top-[50px] md:top-[150px] left-0 md:left-[100px] px-4 md:px-0">
+            <div className="flex flex-col items-center justify-center space-y-6 md:space-y-18">
               <SplitText
                 text="Welcome to OPTO!"
-                className="text-[100px] font-semibold text-center text-white"
+                className="text-5xl md:text-[100px] font-semibold text-center text-white"
                 delay={100}
                 duration={0.6}
                 ease="power3.out"
@@ -85,7 +82,6 @@ export default function Login() {
                 onLetterAnimationComplete={handleAnimationComplete}
               />
 
-              {/* TextType component below */}
               <div className="mt-8">
                 <TextType
                   text={["Join the crypto prediction revolution", "Start with 1000 free coins", "Earn rewards for accurate insights"]}
@@ -93,23 +89,20 @@ export default function Login() {
                   pauseDuration={1500}
                   showCursor={true}
                   cursorCharacter="▊"
-                  className="text-3xl text-white text-center font-light"
+                  className="text-xl md:text-3xl text-white text-center font-light px-4 md:px-0"
                 />
               </div>
             </div>
           </div>
 
-          {/* Right Side - Login Card */}
-          <div className="w-[50vw] h-[100vh] flex flex-col top-[200px] items-center relative">
+          <div className="w-full md:w-[50vw] h-[50vh] md:h-[100vh] flex flex-col top-[0px] md:top-[200px] items-center relative px-4 md:px-0 bottom-[200px] sm:bottom-0  ">
 
 
 
-            {/* Card wrapper */}
-            <div className="relative w-[400px] h-[300px]  rounded-[80px] shadow-[0_0px_40px_rgba(255,121,198,0.6)] hover:shadow-[0_10px_100px_rgba(255,121,198,0.8)]
+            <div className="relative w-[350px] md:w-[400px] h-[250px] md:h-[300px]  rounded-[60px] md:rounded-[80px] shadow-[0_0px_40px_rgba(255,121,198,0.6)] hover:shadow-[0_10px_100px_rgba(255,121,198,0.8)]
             transition-shadow duration-500
             overflow-hidden z-10 "
             >
-              {/* Aurora background */}
               <Aurora
                 colorStops={["#3A29FF", "#FF94B4", "#FF3232"]}
                 blend={0.3}
@@ -118,11 +111,10 @@ export default function Login() {
 
               />
 
-              {/* Google Login Button */}
               <div className="absolute inset-0 flex justify-center items-center z-10 pointer-events-none">
                 <button
                   onClick={handleGoogleLogin}
-                  className="bg-white text-gray-600 p-3 w-[290px] rounded-[9px] flex items-center justify-center gap-4 font-bold pointer-events-auto hover:scale-100"
+                  className="bg-white text-gray-600 p-3 w-[260px] md:w-[290px] rounded-[9px] flex items-center justify-center gap-4 font-bold text-sm md:text-base pointer-events-auto hover:scale-105 transition-transform"
                 >
                   <img src={googleLogo} alt="google-logo" className="w-5 h-5" />
                   Continue with Google
@@ -132,8 +124,7 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Footer with LogoLoop */}
-        <div className="absolute bottom-0 left-0 right-0 h-[200px] overflow-hidden bg-gradient-to-t from-black/50 to-transparent flex items-center">
+        <div className="absolute bottom-0 left-0 right-0 h-[150px] md:h-[200px] overflow-hidden bg-gradient-to-t from-black/50 to-transparent flex items-center z-0">
           <LogoLoop
             logos={imageLogos}
             speed={120}

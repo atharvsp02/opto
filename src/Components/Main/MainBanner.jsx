@@ -10,7 +10,6 @@ import RippleBanner from "../../assets/RippleBanner.svg";
 import { motion } from "framer-motion";
 
 export default function MainBanner() {
-    // Original images
     const originalImages = [
         BitcoinBanner,
         EthereumBanner,
@@ -22,47 +21,40 @@ export default function MainBanner() {
         RippleBanner,
     ];
 
-    // Add cloned first and last image for looping
     const images = [
-        originalImages[originalImages.length - 1], // clone last
+        originalImages[originalImages.length - 1], 
         ...originalImages,
-        originalImages[0], // clone first
+        originalImages[0], 
     ];
 
-    const [index, setIndex] = useState(1); // Start at first real image
-    const [isAnimating, setIsAnimating] = useState(true); // Controls smooth animation
+    const [index, setIndex] = useState(1); 
+    const [isAnimating, setIsAnimating] = useState(true); 
     const intervalRef = useRef(null);
 
-    // Start auto-scroll
     const startAutoScroll = () => {
         intervalRef.current = setInterval(nextImage, 5000);
     };
 
-    // Reset auto-scroll after user interaction
     const resetAutoScroll = () => {
         clearInterval(intervalRef.current);
         startAutoScroll();
     };
 
-    // Go to next image
     const nextImage = () => {
         setIndex((prev) => prev + 1);
         setIsAnimating(true);
     };
 
-    // Go to previous image
     const prevImage = () => {
         setIndex((prev) => prev - 1);
         setIsAnimating(true);
     };
 
-    // Auto-scroll on mount
     useEffect(() => {
         startAutoScroll();
         return () => clearInterval(intervalRef.current);
     }, []);
 
-    // Infinite loop logic
     useEffect(() => {
         if (index === images.length - 1) {
             setTimeout(() => {
@@ -85,22 +77,20 @@ export default function MainBanner() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="relative flex items-center justify-center bg-transparent"
+            className="relative flex items-center justify-center bg-transparent px-2 sm:px-4 lg:px-0"
         >
 
-            {/* Left Arrow */}
             <button
                 onClick={() => {
                     prevImage();
                     resetAutoScroll();
                 }}
-                className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-white/100 shadow  z-10 hover:bg-white opacity-0 h-[223px] w-[150px]" // CHANGED: absolute position
+                className="absolute left-0 sm:left-2 top-1/2 -translate-y-1/2 p-1 sm:p-2 bg-white/100 shadow z-10 hover:bg-white opacity-0 h-[120px] w-[40px] sm:h-[180px] sm:w-[100px] lg:h-[223px] lg:w-[150px] text-lg sm:text-2xl"
             >
                 &#8592;
             </button>
 
-            {/* Image container */}
-            <div className="w-full overflow-hidden flex justify-center ">
+            <div className="w-full overflow-hidden flex justify-center">
                 <div
                     className={`flex ${isAnimating ? "transition-transform duration-1000 ease-in-out" : ""}`}
                     style={{
@@ -114,24 +104,23 @@ export default function MainBanner() {
                     }}
                 >
                     {images.map((img, i) => (
-                        <div key={i} className="w-full flex-shrink-0 flex justify-center">
+                        <div key={i} className="w-full flex-shrink-0 flex justify-center px-2 sm:px-8 lg:px-[65px]">
                             <img
                                 src={img}
                                 alt={`banner-${i}`}
-                                className="w-full max-w-full h-[250px] mx-[65px] my-2 rounded-2xl"
+                                className="w-full h-[140px] sm:h-[200px] lg:h-[250px] my-2 rounded-lg sm:rounded-xl lg:rounded-2xl object-contain"
                             />
                         </div>
                     ))}
                 </div>
             </div>
 
-            {/* Right Arrow */}
             <button
                 onClick={() => {
                     nextImage();
                     resetAutoScroll();
                 }}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-white/100 shadow  z-10 hover:bg-white opacity-0 h-[223px] w-[150px]" // CHANGED: absolute position
+                className="absolute right-0 sm:right-2 top-1/2 -translate-y-1/2 p-1 sm:p-2 bg-white/100 shadow z-10 hover:bg-white opacity-0 h-[120px] w-[40px] sm:h-[180px] sm:w-[100px] lg:h-[223px] lg:w-[150px] text-lg sm:text-2xl"
             >
                 &#8594;
             </button>

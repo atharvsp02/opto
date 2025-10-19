@@ -10,12 +10,10 @@ import "./App.css";
 function App() {
   const { user, authLoading } = useContext(Context);
 
-  // ⏳ While Firebase still checking session
   if (authLoading) {
     return <SkeletonLoader />;
   }
 
-  // ✅ Once done, then render routes
   return (
     <Routes>
 
