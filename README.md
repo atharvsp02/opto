@@ -15,7 +15,7 @@
 
 ## Overview
 
-**OPTO** is an opinion-based prediction web platform inspired by Probo.  
+**OPTO** is an opinion-based prediction web platform.  
 It allows users to express their opinions and make predictions using virtual points rather than money.  
 Each question lets users vote "Yes" or "No," and the results evolve dynamically based on community insights.
 
