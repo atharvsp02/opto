@@ -43,6 +43,7 @@ The platform promotes engagement, reasoning, and community-driven forecasting �
 ---
 
 ## Architecture
+
 ```
 OPTO Platform
 ├── Frontend (React.js)
@@ -66,16 +67,16 @@ OPTO Platform
 
 ### Frontend
 
-- **React.js** – Component-based UI framework  
-- **Vite** – Fast build tool and dev server  
-- **Tailwind CSS** – Utility-first responsive styling  
-- **JavaScript (ES6+)** – Core scripting language  
+- **React.js** – Component-based UI framework
+- **Vite** – Fast build tool and dev server
+- **Tailwind CSS** – Utility-first responsive styling
+- **JavaScript (ES6+)** – Core scripting language
 
 ### Backend
 
-- **Firebase Authentication** – Secure user sign-in  
-- **Firebase Firestore** – Real-time NoSQL database  
-- **Firebase Hosting** – Reliable backend hosting  
+- **Firebase Authentication** – Secure user sign-in
+- **Firebase Firestore** – Real-time NoSQL database
+- **Firebase Hosting** – Reliable backend hosting
 
 ### Deployment
 
@@ -92,6 +93,7 @@ OPTO Platform
 - Firebase project setup
 
 ### Steps
+
 ```bash
 # 1. Clone Repository
 git clone https://github.com/atharvsp02/opto.git
@@ -125,6 +127,7 @@ vercel deploy
 ---
 
 ## Project Structure
+
 ```
 OPTO/
 ├── src/
@@ -142,28 +145,6 @@ OPTO/
 ```
 
 ---
-
-## Future Improvements
-
-- Add leaderboard and ranking system
-- Implement detailed user analytics
-- Introduce dark mode
-- Add notification system for new polls
-- Enhance prediction algorithms for accuracy tracking
-
----
-
-## Contributing
-
-Contributions are welcome.  
-Please open a pull request with detailed information about the change.
-
----
-
-## License
-
-This project is licensed under the MIT License.  
-See the `LICENSE` file for more details.
 
 ---
 
