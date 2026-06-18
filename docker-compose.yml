@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16
+    container_name: opto-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: opto
+      POSTGRES_PASSWORD: opto_dev_password
+      POSTGRES_DB: opto
+    ports:
+      - "5432:5432"
+    volumes:
+      - opto_pgdata:/var/lib/postgresql/data
+
+volumes:
+  opto_pgdata:

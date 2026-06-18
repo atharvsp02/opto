@@ -57,7 +57,10 @@ export default function Login() {
       }
       navigate('/');
     } catch (error) {
-
+      // Don't swallow the error: surface it so the user knows login failed.
+      // Phase 2 replaces this with a proper toast notification.
+      console.error('Google login failed:', error);
+      alert('Login failed. Please try again.');
     }
   }
 

@@ -1,4 +1,4 @@
-// src/Components/GlassSurfaceBackground.jsx
+// src/components/AnimatedComponents/GlassSurface.jsx
 import React from "react";
 
 export default function GlassSurfaceBackground() {

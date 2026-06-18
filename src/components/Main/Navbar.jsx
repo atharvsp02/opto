@@ -16,7 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
 function Navbar() {
-  const { user, userData, showData, setShowData } = useContext(Context);
+  const { user, userData, setShowData } = useContext(Context);
   const [selectedCoin, setSelectedCoin] = useState("All");
   const [LoggedIn, setLoggedIn] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);

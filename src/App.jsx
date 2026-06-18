@@ -1,14 +1,14 @@
 import React, { useContext } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import Login from "./Components/Login/Login";
-import MainPage from "./Components/Main/MainPage";
-import Profile from "./Components/Profile/Profile";
+import Login from "./components/Login/Login";
+import MainPage from "./components/Main/MainPage";
+import Profile from "./components/Profile/Profile";
 import { Context } from "./context/context";
-import SkeletonLoader from "./Components/AnimatedComponents/SkeletonLoader";
+import SkeletonLoader from "./components/AnimatedComponents/SkeletonLoader";
 import "./App.css";
 
 function App() {
-  const { user, authLoading } = useContext(Context);
+  const { authLoading } = useContext(Context);
 
   if (authLoading) {
     return <SkeletonLoader />;
