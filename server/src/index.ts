@@ -1,8 +1,10 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import cron from "node-cron";
 import { pool, query } from "./db";
 import { requireAuth } from "./authMiddleware";
+import { ensureOpenRound, resolveExpiredRounds } from "./rounds";
 
 const PREDICTION_COST = 100;
 
@@ -115,7 +117,19 @@ app.post("/predictions", requireAuth, async (req, res) => {
   }
 });
 
+// Resolve any expired rounds once a minute (server-authoritative settlement).
+cron.schedule("* * * * *", () => {
+  resolveExpiredRounds().catch((err) =>
+    console.error("Round resolver tick failed:", err)
+  );
+});
+
 const port = process.env.PORT || 4000;
-app.listen(port, () => {
+app.listen(port, async () => {
   console.log(`OPTO backend listening on http://localhost:${port}`);
+  try {
+    await ensureOpenRound();
+  } catch (err) {
+    console.error("Failed to ensure an open round on startup:", err);
+  }
 });
