@@ -4,8 +4,6 @@ import type { PoolClient } from "pg";
 export const ROUND_DURATION_MS = 5 * 60 * 1000;
 export const REWARD = 200;
 
-// `delta` is added to the live price to form each question's target.
-// `id` is the CoinGecko id used in the price API.
 const CRYPTOS = [
   { crypto: "BTC", id: "bitcoin", delta: 1000 },
   { crypto: "ETH", id: "ethereum", delta: 100 },
@@ -19,7 +17,6 @@ const CRYPTOS = [
 
 type PriceMap = Record<string, number>;
 
-// Throws on any failure or missing price — callers must never settle money on bad data.
 async function fetchPrices(): Promise<PriceMap> {
   const ids = CRYPTOS.map((c) => c.id).join(",");
   const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`;
@@ -90,7 +87,6 @@ export async function resolveExpiredRounds(): Promise<void> {
   );
   if (due.rowCount === 0) return;
 
-  // Fetch once per tick; on failure resolve nothing and retry next tick.
   let prices: PriceMap;
   try {
     prices = await fetchPrices();
@@ -109,7 +105,6 @@ async function resolveOneRound(roundId: number, prices: PriceMap): Promise<void>
   try {
     await client.query("BEGIN");
 
-    // Re-check status under a row lock so overlapping ticks can't pay out twice.
     const lock = await client.query(
       "SELECT status FROM rounds WHERE id = $1 FOR UPDATE",
       [roundId]
@@ -164,7 +159,6 @@ async function resolveOneRound(roundId: number, prices: PriceMap): Promise<void>
     await client.query("COMMIT");
     console.log(`Resolved round ${roundId}, opened round ${nextId}`);
   } catch (err) {
-    // Swallow per-round: one bad round must not abort the others in this tick.
     await client.query("ROLLBACK");
     console.error(`Failed to resolve round ${roundId}:`, err);
   } finally {

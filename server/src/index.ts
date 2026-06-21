@@ -39,6 +39,57 @@ app.get("/me", requireAuth, async (req, res) => {
   }
 });
 
+app.get("/round/current", async (_req, res) => {
+  try {
+    const roundResult = await query(
+      "SELECT id, expiry_time FROM rounds WHERE status = 'open' ORDER BY id DESC LIMIT 1"
+    );
+    if (roundResult.rowCount === 0) {
+      return res.status(404).json({ error: "no open round" });
+    }
+    const round = roundResult.rows[0];
+
+    const questionsResult = await query(
+      "SELECT id, crypto, target_price FROM questions WHERE round_id = $1 ORDER BY id",
+      [round.id]
+    );
+
+    res.json({
+      roundId: round.id,
+      expiryTime: round.expiry_time,
+      questions: questionsResult.rows,
+    });
+  } catch (err) {
+    console.error("GET /round/current failed:", err);
+    res.status(500).json({ error: "could not load round" });
+  }
+});
+
+app.get("/me/predictions", requireAuth, async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT p.id,
+              p.answer,
+              p.status,
+              p.created_at,
+              q.crypto,
+              q.target_price,
+              q.correct_answer,
+              q.round_id
+         FROM predictions p
+         JOIN questions q ON q.id = p.question_id
+        WHERE p.user_id = $1
+        ORDER BY p.created_at DESC
+        LIMIT 50`,
+      [req.uid]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("GET /me/predictions failed:", err);
+    res.status(500).json({ error: "could not load predictions" });
+  }
+});
+
 app.post("/predictions", requireAuth, async (req, res) => {
   const { questionId, answer } = req.body ?? {};
 
@@ -117,7 +168,6 @@ app.post("/predictions", requireAuth, async (req, res) => {
   }
 });
 
-// Resolve any expired rounds once a minute (server-authoritative settlement).
 cron.schedule("* * * * *", () => {
   resolveExpiredRounds().catch((err) =>
     console.error("Round resolver tick failed:", err)
