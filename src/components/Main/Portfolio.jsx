@@ -2,16 +2,29 @@ import React, { useContext } from "react";
 import { Context } from "../../context/context";
 import GlassSurfaceBackground from "../AnimatedComponents/GlassSurface";
 
-function Portfolio({ responses, idToName }) {
+const symbolToName = {
+    BTC: "Bitcoin",
+    ETH: "Ethereum",
+    SOL: "Solana",
+    DOGE: "Dogecoin",
+    ADA: "Cardano",
+    BNB: "Binance Coin",
+    POL: "Polygon",
+    XRP: "Ripple",
+};
+
+function Portfolio({ predictions = [] }) {
     const { user } = useContext(Context);
 
     if (!user) {
         return <p className="p-4 text-center text-sm sm:text-base">Login to see your portfolio</p>;
     }
 
-    const sortedRoundIds = Object.keys(responses)
-        .filter(key => key.startsWith('round_'))
-        .sort((a, b) => b.localeCompare(a));
+    const groups = {};
+    for (const p of predictions) {
+        (groups[p.round_id] ||= []).push(p);
+    }
+    const sortedRoundIds = Object.keys(groups).sort((a, b) => Number(b) - Number(a));
 
     if (sortedRoundIds.length === 0) {
         return <p className="p-4 text-center text-sm sm:text-base">No opinions yet!</p>;
@@ -24,8 +37,8 @@ function Portfolio({ responses, idToName }) {
             </h2>
 
             {sortedRoundIds.map((roundId) => {
-                const roundData = responses[roundId];
-                const roundTimestamp = new Date(parseInt(roundId.split('_')[1])).toLocaleString();
+                const roundData = groups[roundId];
+                const roundTimestamp = new Date(roundData[0].created_at).toLocaleString();
 
                 return (
                     <div
@@ -44,52 +57,50 @@ function Portfolio({ responses, idToName }) {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {roundData &&
-                                        Object.entries(roundData).map(([qid, data]) => (
-                                            <tr key={`${roundId}-${qid}`}>
-                                                <td className="border-b border-white/10 p-2 text-sm">{idToName[qid] || qid.toUpperCase()}</td>
-                                                <td className="border-b border-white/10 p-2 text-sm">{data.answer ? data.answer.toUpperCase() : "—"}</td>
-                                                <td
-                                                    className={`border-b border-white/10 p-2 text-sm font-bold ${data.status === "correct"
-                                                        ? "text-green-400"
-                                                        : data.status === "wrong"
-                                                            ? "text-red-400"
-                                                            : "text-gray-400"
-                                                        }`}
-                                                >
-                                                    {data.status}
-                                                </td>
-                                            </tr>
-                                        ))}
+                                    {roundData.map((p) => (
+                                        <tr key={p.id}>
+                                            <td className="border-b border-white/10 p-2 text-sm">{symbolToName[p.crypto] || p.crypto}</td>
+                                            <td className="border-b border-white/10 p-2 text-sm">{p.answer ? p.answer.toUpperCase() : "—"}</td>
+                                            <td
+                                                className={`border-b border-white/10 p-2 text-sm font-bold ${p.status === "correct"
+                                                    ? "text-green-400"
+                                                    : p.status === "wrong"
+                                                        ? "text-red-400"
+                                                        : "text-gray-400"
+                                                    }`}
+                                            >
+                                                {p.status}
+                                            </td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
                         </div>
 
                         <div className="block sm:hidden space-y-3">
-                            {roundData &&
-                                Object.entries(roundData).map(([qid, data]) => (
-                                    <div
-                                        key={`${roundId}-${qid}`}
-                                        className="bg-white/5 rounded-lg p-3 border border-white/10"
-                                    >
-                                        <div className="flex justify-between items-center mb-2">
-                                            <span className="font-semibold text-sm">{idToName[qid] || qid.toUpperCase()}</span>
-                                            <span
-                                                className={`text-xs font-bold px-2 py-1 rounded ${data.status === "correct"
-                                                    ? "bg-green-500/20 text-green-400"
-                                                    : data.status === "wrong"
-                                                        ? "bg-red-500/20 text-red-400"
-                                                        : "bg-gray-500/20 text-gray-400"
-                                                    }`}
-                                            >
-                                                {data.status}
-                                            </span>
-                                        </div>
-                                        <div className="text-xs text-gray-300">
-                                            Opinion: <span className="font-semibold">{data.answer ? data.answer.toUpperCase() : "—"}</span>
-                                        </div>
+                            {roundData.map((p) => (
+                                <div
+                                    key={p.id}
+                                    className="bg-white/5 rounded-lg p-3 border border-white/10"
+                                >
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="font-semibold text-sm">{symbolToName[p.crypto] || p.crypto}</span>
+                                        <span
+                                            className={`text-xs font-bold px-2 py-1 rounded ${p.status === "correct"
+                                                ? "bg-green-500/20 text-green-400"
+                                                : p.status === "wrong"
+                                                    ? "bg-red-500/20 text-red-400"
+                                                    : "bg-gray-500/20 text-gray-400"
+                                                }`}
+                                        >
+                                            {p.status}
+                                        </span>
                                     </div>
-                                ))}
+                                    <div className="text-xs text-gray-300">
+                                        Opinion: <span className="font-semibold">{p.answer ? p.answer.toUpperCase() : "—"}</span>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 );

@@ -1,9 +1,8 @@
 import { signInWithPopup } from 'firebase/auth';
-import { auth, provider, db } from '../../firebase';
+import { auth, provider } from '../../firebase';
 import { useNavigate } from 'react-router-dom';
 import googleLogo from '../../assets/google-logo.svg';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
 import SplitText from "../AnimatedComponents/SplitText";
 import TextType from '../AnimatedComponents/TextType';
 import Background from '../Main/Background';
@@ -42,23 +41,9 @@ export default function Login() {
 
   const handleGoogleLogin = async () => {
     try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-
-      const userDocRef = doc(db, "users", user.uid);
-      const userDocSnap = await getDoc(userDocRef);
-
-      if (!userDocSnap.exists()) {
-        await setDoc(userDocRef, {
-          displayName: user.displayName,
-          email: user.email,
-          coins: 1000,
-        });
-      }
+      await signInWithPopup(auth, provider);
       navigate('/');
     } catch (error) {
-      // Don't swallow the error: surface it so the user knows login failed.
-      // Phase 2 replaces this with a proper toast notification.
       console.error('Google login failed:', error);
       alert('Login failed. Please try again.');
     }

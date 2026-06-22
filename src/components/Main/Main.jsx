@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect, useRef } from "react";
+import React, { useContext, useState, useEffect, useCallback, useMemo } from "react";
 import Bitcoin from "../../assets/Bitcoin.svg";
 import Ethereum from "../../assets/Ethereum.svg";
 import Solana from "../../assets/solana.svg";
@@ -7,289 +7,134 @@ import Cardano from "../../assets/cardano.svg";
 import Binance from "../../assets/binance.svg";
 import Polygon from "../../assets/Polygon.svg";
 import Ripple from "../../assets/ripple.svg";
-import { db } from "../../firebase";
 import { Context } from "../../context/context";
 import Portfolio from "./Portfolio";
-import { doc, setDoc, getDoc, updateDoc, onSnapshot, increment, } from "firebase/firestore";
+import { getCurrentRound, getMyPredictions, placePrediction } from "../../api";
 import TargetCursor from "../AnimatedComponents/TargetCursor";
 import GlassSurfaceBackground from "../AnimatedComponents/GlassSurface";
 import { motion } from "framer-motion";
 
-function Main() {
-  const { showData, user } = useContext(Context);
-  const [questions, setQuestion] = useState([]);
-  const [responses, setResponses] = useState({});
-  const [now, setNow] = useState(new Date());
-  const [currentRoundResponses, setCurrentRoundResponses] = useState({});
-  const [expiry, setExpiry] = useState(null);
-  const hasCheckedRef = useRef(false);
-  const currentRoundIdRef = useRef(null);
+const POLL_INTERVAL_MS = 15000;
 
-  
+const idToName = {
+  btc: "Bitcoin",
+  eth: "Ethereum",
+  sol: "Solana",
+  doge: "Dogecoin",
+  card: "Cardano",
+  bnb: "Binance Coin",
+  pol: "Polygon",
+  xrp: "Ripple",
+};
+
+const symbolToKey = {
+  BTC: "btc",
+  ETH: "eth",
+  SOL: "sol",
+  DOGE: "doge",
+  ADA: "card",
+  BNB: "bnb",
+  POL: "pol",
+  XRP: "xrp",
+};
+
+const keyToImg = {
+  btc: Bitcoin,
+  eth: Ethereum,
+  sol: Solana,
+  doge: Doge,
+  card: Cardano,
+  bnb: Binance,
+  pol: Polygon,
+  xrp: Ripple,
+};
+
+function normalizeQuestion(q) {
+  const key = symbolToKey[q.crypto];
+  return {
+    id: Number(q.id),
+    key,
+    img: keyToImg[key],
+    traders: 5,
+    text: `${idToName[key]} to reach ${Number(q.target_price).toFixed(2)} USDT or more?`,
+  };
+}
+
+function Main() {
+  const { showData, user, refreshUserData } = useContext(Context);
+  const [questions, setQuestions] = useState([]);
+  const [now, setNow] = useState(new Date());
+  const [expiry, setExpiry] = useState(null);
+  const [roundId, setRoundId] = useState(null);
+  const [myPredictions, setMyPredictions] = useState([]);
+
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
 
-  
-  useEffect(() => {
-    const roundDocRef = doc(db, "rounds", "current");
-
-    getDoc(roundDocRef).then((docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        if (!data.expiryTime) {
-          const newExpiry = new Date(Date.now() + 5 * 60 * 1000);
-          setDoc(roundDocRef, {
-            expiryTime: newExpiry,
-            isCreatingRound: false,
-          });
-        }
-      } else {
-        const newExpiry = new Date(Date.now() + 5 * 60 * 1000);
-        setDoc(roundDocRef, {
-          expiryTime: newExpiry,
-          isCreatingRound: false,
-        });
-      }
-    });
-
-    const unsubscribe = onSnapshot(roundDocRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        if (!data.expiryTime) return;
-        const expiryTimestamp = data.expiryTime;
-        const newExpiry = expiryTimestamp.toDate();
-        const newRoundId = `round_${newExpiry.getTime()}`;
-
-        if (currentRoundIdRef.current !== newRoundId) {
-          hasCheckedRef.current = false;
-          currentRoundIdRef.current = newRoundId;
-        }
-
-        setExpiry(newExpiry);
-        fetchPrices(newExpiry);
-      }
-    });
-
-    return () => unsubscribe();
+  const loadRound = useCallback(async () => {
+    try {
+      const round = await getCurrentRound();
+      setRoundId(round.roundId);
+      setExpiry(new Date(round.expiryTime));
+      setQuestions(round.questions.map(normalizeQuestion));
+    } catch {
+      setRoundId(null);
+      setExpiry(null);
+      setQuestions([]);
+    }
   }, []);
 
-  
-  useEffect(() => {
-    if (!user || !expiry) return;
-    const ref = doc(db, "responses", user.uid);
-    const unsubscribe = onSnapshot(ref, (snap) => {
-      if (snap.exists()) {
-        const allResponses = snap.data();
-        setResponses(allResponses);
-        const currentRoundId = `round_${expiry.getTime()}`;
-        const currentData = allResponses[currentRoundId] || {};
-        setCurrentRoundResponses(currentData);
-      } else {
-        setResponses({});
-        setCurrentRoundResponses({});
-      }
-    });
-    return () => unsubscribe();
-  }, [user, expiry]);
-
-  
-  const fetchPrices = async (newExpiry) => {
-    try {
-      const res = await fetch(
-        "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,dogecoin,cardano,binancecoin,polygon,ripple&vs_currencies=usd"
-      );
-      if (!res.ok) {
-        useFallbackPrices(newExpiry);
-        return;
-      }
-      const data = await res.json();
-      if (!data || Object.keys(data).length === 0) {
-        useFallbackPrices(newExpiry);
-        return;
-      }
-      QuestionFromPrice(data, newExpiry);
-    } catch {
-      useFallbackPrices(newExpiry);
-    }
-  };
-
-  const useFallbackPrices = (expiryTime) => {
-    const fallbackData = {
-      bitcoin: { usd: 95000 },
-      ethereum: { usd: 3500 },
-      solana: { usd: 180 },
-      dogecoin: { usd: 0.35 },
-      cardano: { usd: 0.85 },
-      binancecoin: { usd: 600 },
-      polygon: { usd: 0.75 },
-      ripple: { usd: 2.5 },
-    };
-    QuestionFromPrice(fallbackData, expiryTime);
-  };
-
-  const QuestionFromPrice = (prices, expiryTime) => {
-    const qList = [
-      {
-        id: "btc",
-        text: `Bitcoin to reach ${(prices.bitcoin.usd + 1000).toFixed(2)} USDT or more?`,
-        traders: 5,
-        img: Bitcoin,
-        expiration: expiryTime,
-        correctAnswer: "no",
-      },
-      {
-        id: "eth",
-        text: `Ethereum to reach ${(prices.ethereum.usd + 100).toFixed(2)} USDT or more?`,
-        traders: 5,
-        img: Ethereum,
-        expiration: expiryTime,
-        correctAnswer: "no",
-      },
-      {
-        id: "sol",
-        text: `Solana to reach ${(prices.solana.usd + 10).toFixed(2)} USDT or more?`,
-        traders: 5,
-        img: Solana,
-        expiration: expiryTime,
-        correctAnswer: "no",
-      },
-      {
-        id: "doge",
-        text: `Dogecoin to reach ${(prices.dogecoin.usd + 0.01).toFixed(2)} USDT or more?`,
-        traders: 5,
-        img: Doge,
-        expiration: expiryTime,
-        correctAnswer: "no",
-      },
-      {
-        id: "card",
-        text: `Cardano to reach ${(prices.cardano.usd + 0.1).toFixed(2)} USDT or more?`,
-        traders: 5,
-        img: Cardano,
-        expiration: expiryTime,
-        correctAnswer: "no",
-      },
-      {
-        id: "bnb",
-        text: `Binance Coin to reach ${(prices.binancecoin.usd + 10).toFixed(2)} USDT or more?`,
-        traders: 5,
-        img: Binance,
-        expiration: expiryTime,
-        correctAnswer: "no",
-      },
-      {
-        id: "pol",
-        text: `Polygon to reach ${(prices.polygon.usd + 0.1).toFixed(2)} USDT or more?`,
-        traders: 5,
-        img: Polygon,
-        expiration: expiryTime,
-        correctAnswer: "no",
-      },
-      {
-        id: "xrp",
-        text: `Ripple to reach ${(prices.ripple.usd + 0.1).toFixed(2)} USDT or more?`,
-        traders: 5,
-        img: Ripple,
-        expiration: expiryTime,
-        correctAnswer: "no",
-      },
-    ];
-    setQuestion(qList);
-  };
-
-  const handleResponse = async (qid, answer) => {
-    if (!user || !expiry) return alert("Login required or round not ready!");
-    if (now >= expiry) return alert("This round has expired!");
-    const userDocRef = doc(db, "users", user.uid);
-    const responsesDocRef = doc(db, "responses", user.uid);
-    const roundId = `round_${expiry.getTime()}`;
-    try {
-      const userDocSnap = await getDoc(userDocRef);
-      if (!userDocSnap.exists()) return alert("User not found");
-      if (userDocSnap.data().coins < 100) return alert("Not enough coins!");
-      await updateDoc(userDocRef, { coins: increment(-100) });
-      const dataToSave = {
-        [roundId]: { [qid]: { answer, status: "pending" } },
-      };
-      await setDoc(responsesDocRef, dataToSave, { merge: true });
-    } catch (err) {
-
-    }
-  };
-
-  const autoCheck = async () => {
-    if (!user || !expiry || questions.length === 0 || hasCheckedRef.current)
+  const loadPredictions = useCallback(async () => {
+    if (!user) {
+      setMyPredictions([]);
       return;
-    hasCheckedRef.current = true;
-    const userDocRef = doc(db, "users", user.uid);
-    const expiredRoundId = `round_${expiry.getTime()}`;
-    const roundData = responses[expiredRoundId];
-    if (!roundData) return;
-
-    const updates = {};
-    let correctAnswersCount = 0;
-
-    questions.forEach((q) => {
-      if (roundData[q.id]?.status === "pending") {
-        const newStatus =
-          roundData[q.id].answer === q.correctAnswer ? "correct" : "wrong";
-        updates[`${expiredRoundId}.${q.id}.status`] = newStatus;
-        if (newStatus === "correct") correctAnswersCount++;
-      }
-    });
-
-    if (Object.keys(updates).length > 0) {
-      await updateDoc(doc(db, "responses", user.uid), updates);
     }
-
-    if (correctAnswersCount > 0) {
-      await updateDoc(userDocRef, { coins: increment(correctAnswersCount * 200) });
+    try {
+      setMyPredictions(await getMyPredictions());
+    } catch {
+      setMyPredictions([]);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
-    if (!expiry) return;
-    if (now >= expiry && !hasCheckedRef.current) {
-      autoCheck();
-      const createNewRound = async () => {
-        const roundDocRef = doc(db, "rounds", "current");
-        try {
-          const currentRoundDoc = await getDoc(roundDocRef);
-          const data = currentRoundDoc.data();
-          if (data?.isCreatingRound || data?.expiryTime.toDate() > expiry) return;
-          await updateDoc(roundDocRef, { isCreatingRound: true });
-          const newExpiryDate = new Date(Date.now() + 60 * 60 * 1000);
-          await updateDoc(roundDocRef, {
-            expiryTime: newExpiryDate,
-            isCreatingRound: false,
-          });
-        } catch {
-          await updateDoc(roundDocRef, { isCreatingRound: false });
-        }
-      };
-      setTimeout(createNewRound, 1000);
-    }
-  }, [now, expiry]);
+    const poll = async () => {
+      await loadRound();
+      await loadPredictions();
+    };
+    poll();
+    const interval = setInterval(poll, POLL_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [loadRound, loadPredictions]);
 
-  const idToName = {
-    btc: "Bitcoin",
-    eth: "Ethereum",
-    sol: "Solana",
-    doge: "Dogecoin",
-    card: "Cardano",
-    bnb: "Binance Coin",
-    pol: "Polygon",
-    xrp: "Ripple",
+  const currentRoundResponses = useMemo(() => {
+    const map = {};
+    for (const p of myPredictions) {
+      if (p.round_id === roundId) {
+        map[symbolToKey[p.crypto]] = { answer: p.answer, status: p.status };
+      }
+    }
+    return map;
+  }, [myPredictions, roundId]);
+
+  const handleResponse = async (question, answer) => {
+    if (!user) return alert("Login required or round not ready!");
+    if (now >= expiry) return alert("This round has expired!");
+    try {
+      await placePrediction(question.id, answer);
+      await Promise.all([loadPredictions(), refreshUserData()]);
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
   const filteredQuestions =
-    showData === "all" ? questions : questions.filter((q) => q.id === showData);
+    showData === "all" ? questions : questions.filter((q) => q.key === showData);
 
-  const formatCountdown = (expiry) => {
-    if (!expiry) return "00:00:00";
-    const diff = expiry - now;
+  const formatCountdown = (expiryTime) => {
+    if (!expiryTime) return "00:00:00";
+    const diff = expiryTime - now;
     if (diff <= 0) return "Expired";
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -307,10 +152,10 @@ function Main() {
       transition={{ duration: 0.6, delay: 0.5 }}
       className="relative min-h-screen pt-[75px] px-4 sm:px-6 lg:px-[50px] text-white overflow-hidden bg-transparent"
     >
-      
+
       <GlassSurfaceBackground />
 
-      
+
       <div className="hidden md:block">
         <TargetCursor targetSelector=".prediction-button" />
       </div>
@@ -335,7 +180,7 @@ function Main() {
 
           {filteredQuestions.map((q) => (
             <div
-              key={q.id}
+              key={q.key}
               className="p-4 sm:p-5 bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_0_30px_rgba(255,255,255,0.05)] transition-all"
             >
 
@@ -346,32 +191,32 @@ function Main() {
                 <p className="py-1 mb-6 sm:mb-11 text-base sm:text-lg pr-2">{q.text}</p>
                 <img
                   src={q.img}
-                  alt={q.id}
+                  alt={q.key}
                   className="w-[40px] sm:w-[50px] lg:w-[60px] flex-shrink-0"
                 />
               </div>
               <p className="text-sm sm:text-base text-yellow-300 font-mono">
-                Time Left: {formatCountdown(q.expiration)}
+                Time Left: {formatCountdown(expiry)}
               </p>
 
-              {currentRoundResponses[q.id]?.status === "correct" && (
+              {currentRoundResponses[q.key]?.status === "correct" && (
                 <p className="text-green-400 font-bold text-sm sm:text-base">✅ Correct</p>
               )}
-              {currentRoundResponses[q.id]?.status === "wrong" && (
+              {currentRoundResponses[q.key]?.status === "wrong" && (
                 <p className="text-red-400 font-bold text-sm sm:text-base">❌ Wrong</p>
               )}
-              {currentRoundResponses[q.id]?.status === "pending" && (
+              {currentRoundResponses[q.key]?.status === "pending" && (
                 <p className="text-gray-400 text-sm sm:text-base">⏳ Waiting for expiry…</p>
               )}
 
               <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-5 pt-4">
                 <button
-                  onClick={() => handleResponse(q.id, "yes")}
-                  disabled={currentRoundResponses[q.id] || now >= expiry}
-                  className={`prediction-button px-4 sm:px-5 py-2 sm:py-2 w-full sm:w-[400px] rounded-md shadow-xl text-lg sm:text-xl transition-all 
-                    ${currentRoundResponses[q.id]?.answer === "yes"
+                  onClick={() => handleResponse(q, "yes")}
+                  disabled={currentRoundResponses[q.key] || now >= expiry}
+                  className={`prediction-button px-4 sm:px-5 py-2 sm:py-2 w-full sm:w-[400px] rounded-md shadow-xl text-lg sm:text-xl transition-all
+                    ${currentRoundResponses[q.key]?.answer === "yes"
                       ? "bg-gray-500 cursor-default"
-                      : now >= expiry || currentRoundResponses[q.id]
+                      : now >= expiry || currentRoundResponses[q.key]
                         ? "bg-gray-500 cursor-default"
                         : "bg-[#0064FB]/70 hover:bg-[#0064FB] hover:scale-105 cursor-pointer"
                     }
@@ -381,12 +226,12 @@ function Main() {
                 </button>
 
                 <button
-                  onClick={() => handleResponse(q.id, "no")}
-                  disabled={currentRoundResponses[q.id] || now >= expiry}
-                  className={`prediction-button px-4 sm:px-5 py-2 sm:py-2 w-full sm:w-[400px] rounded-md shadow-xl text-lg sm:text-xl transition-all 
-                    ${currentRoundResponses[q.id]?.answer === "no"
+                  onClick={() => handleResponse(q, "no")}
+                  disabled={currentRoundResponses[q.key] || now >= expiry}
+                  className={`prediction-button px-4 sm:px-5 py-2 sm:py-2 w-full sm:w-[400px] rounded-md shadow-xl text-lg sm:text-xl transition-all
+                    ${currentRoundResponses[q.key]?.answer === "no"
                       ? "bg-gray-500 cursor-default"
-                      : now >= expiry || currentRoundResponses[q.id]
+                      : now >= expiry || currentRoundResponses[q.key]
                         ? "bg-gray-500 cursor-default"
                         : "bg-[#FF414B]/70 hover:bg-[#FF414B] hover:scale-105 cursor-pointer"
                     }
@@ -405,7 +250,7 @@ function Main() {
           <div className="absolute inset-0 rounded-2xl " />
 
           <div className="relative z-10 h-full">
-            <Portfolio responses={responses} idToName={idToName} />
+            <Portfolio predictions={myPredictions} />
           </div>
         </div>
 
