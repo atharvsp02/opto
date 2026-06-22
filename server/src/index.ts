@@ -41,9 +41,21 @@ app.get("/me", requireAuth, async (req, res) => {
 
 app.get("/round/current", async (_req, res) => {
   try {
-    const roundResult = await query(
+    let roundResult = await query(
       "SELECT id, expiry_time FROM rounds WHERE status = 'open' ORDER BY id DESC LIMIT 1"
     );
+
+    const expired =
+      roundResult.rowCount === 0 ||
+      new Date(roundResult.rows[0].expiry_time) <= new Date();
+
+    if (expired) {
+      await resolveExpiredRounds();
+      roundResult = await query(
+        "SELECT id, expiry_time FROM rounds WHERE status = 'open' ORDER BY id DESC LIMIT 1"
+      );
+    }
+
     if (roundResult.rowCount === 0) {
       return res.status(404).json({ error: "no open round" });
     }
