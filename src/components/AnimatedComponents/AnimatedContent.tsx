@@ -16,7 +16,7 @@ const AnimatedContent = ({
     scale = 1,
     threshold = 0.1,
     delay = 0,
-    onComplete
+    onComplete = () => {}
 }) => {
     const ref = useRef(null);
 
