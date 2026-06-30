@@ -25,7 +25,3 @@ dist-ssr
 
 
 .env
-
-# Personal working/learning notes (kept local, not part of the product)
-NextToDo.txt
-ROADMAP.md
