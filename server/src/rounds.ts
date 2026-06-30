@@ -1,8 +1,6 @@
 import { pool } from "./db";
 import type { PoolClient } from "pg";
-
-export const ROUND_DURATION_MS = 5 * 60 * 1000;
-export const REWARD = 200;
+import { ROUND_DURATION_MS, REWARD } from "./config";
 
 const CRYPTOS = [
   { crypto: "BTC", id: "bitcoin", delta: 1000 },

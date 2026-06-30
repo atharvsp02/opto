@@ -5,8 +5,7 @@ import cron from "node-cron";
 import { pool, query } from "./db";
 import { requireAuth } from "./authMiddleware";
 import { ensureOpenRound, resolveExpiredRounds } from "./rounds";
-
-const PREDICTION_COST = 100;
+import { PREDICTION_COST, RESOLVER_CRON } from "./config";
 
 const app = express();
 
@@ -180,7 +179,7 @@ app.post("/predictions", requireAuth, async (req, res) => {
   }
 });
 
-cron.schedule("* * * * *", () => {
+cron.schedule(RESOLVER_CRON, () => {
   resolveExpiredRounds().catch((err) =>
     console.error("Round resolver tick failed:", err)
   );
